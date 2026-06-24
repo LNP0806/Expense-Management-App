@@ -1,4 +1,10 @@
-const successResponse = (res, message, data = null, statusCode = 200, metadata = null) => {
+const successResponse = (
+  res,
+  message,
+  data = null,
+  statusCode = 200,
+  metadata = null,
+) => {
   const response = {
     success: true,
     message,

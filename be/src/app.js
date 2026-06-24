@@ -2,7 +2,15 @@ const express = require("express");
 
 const app = express();
 
+const notFoundMiddleware = require("./middlewares/not-found.middleware");
+const requestLoggerMiddleware = require("./middlewares/request-logger.middleware");
+const errorMiddleware = require("./middlewares/error.middleware");
+
+const authRoutes = require("./routes/auth.routes");
+
 app.use(express.json());
+
+app.use(requestLoggerMiddleware);
 
 //========================================================
 // CORS Configuration (Set up to allow communication between Frontend and Backend)
@@ -27,11 +35,17 @@ app.use((req, res, next) => {
 // API Routes (API Routes - Linking to Controller Files)
 //========================================================
 
-app.get("/health", (res) => {
+app.get("/health", (req, res) => {
   res.json({
     status: "OK",
     message: "Backend server is running..."
   });
 });
+
+app.use("/auth", authRoutes);
+
+app.use(notFoundMiddleware);
+
+app.use(errorMiddleware);
 
 module.exports = app;

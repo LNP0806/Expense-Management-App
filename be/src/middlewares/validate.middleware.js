@@ -33,7 +33,7 @@ const validateQuery = (schema) => {
       return next(new AppError("Validation failed", 400, details));
     }
 
-    req.validateBody = result.data;
+    req.validateQuery = result.data;
 
     next();
   };

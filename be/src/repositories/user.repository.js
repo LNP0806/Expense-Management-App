@@ -6,7 +6,8 @@ const getUserbyEmail = async (email) => {
     SELECT id, fullname, email, password, created_at, updated_at
     FROM users
     WHERE email = $1
-    `, [email.trim().toLowerCase()]
+    `,
+    [email.trim().toLowerCase()],
   );
 
   if (!result.rows[0]) return null;
@@ -14,19 +15,24 @@ const getUserbyEmail = async (email) => {
   return result.rows[0];
 };
 
-const createUser = async (data) => {
+const createUser = async (payload) => {
   const result = await pool.query(
     `
     INSERT INTO users (fullname, email, password)
     VALUES ($1, $2, $3)
     RETURNING id, fullname, email, password, created_at, updated_at
-    `, [data.fullname.trim(), data.email.trim().toLowerCase(), data.password]
+    `,
+    [
+      payload.fullname.trim(),
+      payload.email.trim().toLowerCase(),
+      payload.password,
+    ],
   );
 
   return result.rows[0];
-}
+};
 
 module.exports = {
   getUserbyEmail,
   createUser,
-}
+};

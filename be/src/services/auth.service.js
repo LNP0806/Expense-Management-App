@@ -17,15 +17,15 @@ const generateToken = (user) => {
   );
 };
 
-const login = async (data) => {
-  const user = await userRepo.getUserbyEmail(data.email);
+const login = async (payload) => {
+  const user = await userRepo.getUserbyEmail(payload.email);
 
   if (!user) {
     throw new AppError("Invalid email or password", 404);
   }
 
   const isPasswordCorrect = await bcrypt.compare(
-    data.password.trim(),
+    payload.password.trim(),
     user.password,
   );
 
@@ -47,8 +47,8 @@ const login = async (data) => {
   };
 };
 
-const register = async (data) => {
-  const { email } = data;
+const register = async (payload) => {
+  const { email } = payload;
 
   const isExistingUser = await userRepo.getUserbyEmail(email);
 
@@ -56,9 +56,9 @@ const register = async (data) => {
     throw new AppError("Email already exists", 409);
   }
 
-  const password = await bcrypt.hash(data.password.trim(), 10);
+  const password = await bcrypt.hash(payload.password.trim(), 10);
 
-  const newUser = await userRepo.createUser({ fullname: data.fullname, email, password });
+  const newUser = await userRepo.createUser({ fullname: payload.fullname, email, password });
 
   const token = generateToken(newUser);
 

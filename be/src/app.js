@@ -7,6 +7,7 @@ const requestLoggerMiddleware = require("./middlewares/request-logger.middleware
 const errorMiddleware = require("./middlewares/error.middleware");
 
 const authRoutes = require("./routes/auth.routes");
+const categoryRoutes = require("./routes/category.routes");
 
 app.use(express.json());
 
@@ -30,7 +31,6 @@ app.use((req, res, next) => {
   return next();
 });
 
-
 //========================================================
 // API Routes (API Routes - Linking to Controller Files)
 //========================================================
@@ -38,11 +38,13 @@ app.use((req, res, next) => {
 app.get("/health", (req, res) => {
   res.json({
     status: "OK",
-    message: "Backend server is running..."
+    message: "Backend server is running...",
   });
 });
 
 app.use("/auth", authRoutes);
+
+app.use("/categories", categoryRoutes);
 
 app.use(notFoundMiddleware);
 

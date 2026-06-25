@@ -10,7 +10,7 @@ const requireAuth = async (req, res, next) => {
       return next(new AppError("Authentication token is required", 401));
     }
 
-    const token = authHeader.split("")[1];
+    const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -18,6 +18,8 @@ const requireAuth = async (req, res, next) => {
       `SELECT id, email, fullname FROM users WHERE id = $1`,
       [decoded.id],
     );
+
+    const user = result.rows[0];
 
     if (!user) {
       return next(new AppError("User is no longer exists", 404));

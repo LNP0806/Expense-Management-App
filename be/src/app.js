@@ -9,6 +9,7 @@ const errorMiddleware = require("./middlewares/error.middleware");
 const authRoutes = require("./routes/auth.routes");
 const categoryRoutes = require("./routes/category.routes");
 const transactionRoutes = require("./routes/transaction.route");
+const budgetRoutes = require("./routes/budget.routes");
 
 app.use(express.json());
 
@@ -48,6 +49,8 @@ app.use("/auth", authRoutes);
 app.use("/categories", categoryRoutes);
 
 app.use("/transactions", transactionRoutes);
+
+app.use("/budget", budgetRoutes);
 
 app.use(notFoundMiddleware);
 

@@ -114,6 +114,14 @@ const updateTransaction = async (user_id, id, payload) => {
   const { title, description, type, category_id, amount, transaction_date } =
     payload;
 
+  if (category_id) {
+    const isValidCategory = await isCategoryBelongToUser(user_id, category_id);
+
+    if (!isValidCategory) {
+      throw new AppError("Category is not belong to user", 401);
+    }
+  }
+
   const updatedTransaction = await transactionRepo.updateTransaction(id, {
     title,
     description,

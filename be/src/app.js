@@ -8,6 +8,7 @@ const errorMiddleware = require("./middlewares/error.middleware");
 
 const authRoutes = require("./routes/auth.routes");
 const categoryRoutes = require("./routes/category.routes");
+const transactionRoutes = require("./routes/transaction.route");
 
 app.use(express.json());
 
@@ -45,6 +46,8 @@ app.get("/health", (req, res) => {
 app.use("/auth", authRoutes);
 
 app.use("/categories", categoryRoutes);
+
+app.use("/transactions", transactionRoutes);
 
 app.use(notFoundMiddleware);
 

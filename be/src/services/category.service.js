@@ -20,7 +20,6 @@ const getAllCategories = async (user_id, payload) => {
     description: category.description,
     createdAt: category.created_at,
     updatedAt: category.updated_at,
-    deletedAt: category.deleted_at,
   }));
 
   const totalPages = Math.ceil(result.total / limit);
@@ -50,7 +49,14 @@ const getCategoryById = async (user_id, id) => {
 
   const category = await categoryRepo.getCategoryById(id);
 
-  return category || null;
+  return {
+    id: category.id,
+    userId: category.user_id,
+    name: category.name,
+    description: category.description,
+    createdAt: category.created_at,
+    updatedAt: category.updated_at,
+  };
 };
 
 const createCategory = async (user_id, payload) => {
@@ -61,7 +67,14 @@ const createCategory = async (user_id, payload) => {
     description,
   });
 
-  return newCategory || null;
+  return {
+    id: newCategory.id,
+    userId: newCategory.user_id,
+    name: newCategory.name,
+    description: newCategory.description,
+    createdAt: newCategory.created_at,
+    updatedAt: newCategory.updated_at,
+  };
 };
 
 const updateCategory = async (user_id, id, payload) => {
@@ -81,7 +94,14 @@ const updateCategory = async (user_id, id, payload) => {
     description,
   });
 
-  return updatedCategory || null;
+  return {
+    id: updatedCategory.id,
+    userId: updatedCategory.user_id,
+    name: updatedCategory.name,
+    description: updatedCategory.description,
+    createdAt: updatedCategory.created_at,
+    updatedAt: updatedCategory.updated_at,
+  };
 };
 
 const deleteCategory = async (user_id, id) => {
@@ -94,11 +114,18 @@ const deleteCategory = async (user_id, id) => {
     throw new AppError("Category not belong to user", 401);
   }
 
-  const deletedCategory = await categoryRepo.deleteCategory(id);
+  const deletedCategory = await categoryRepo.deleteCategory(user_id, id);
 
-  return deletedCategory || null;
+  return {
+    id: deletedCategory.id,
+    userId: deletedCategory.user_id,
+    name: deletedCategory.name,
+    description: deletedCategory.description,
+    createdAt: deletedCategory.created_at,
+    updatedAt: deletedCategory.updated_at,
+    deletedAt: deletedCategory.deleted_at,
+  };
 };
-
 
 module.exports = {
   getAllCategories,
@@ -106,4 +133,4 @@ module.exports = {
   createCategory,
   updateCategory,
   deleteCategory,
-}
+};

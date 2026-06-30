@@ -1,5 +1,7 @@
 const pool = require("../config/db");
 
+const { withTx } = require("../utils/db-transaction");
+
 const getAllCategories = async (user_id, payload) => {
   const { keyword, limit, offset } = payload;
 
@@ -7,7 +9,7 @@ const getAllCategories = async (user_id, payload) => {
   values.push(user_id);
 
   let query = `
-    SELECT * FROM categories
+    SELECT id, user_id, name, description, created_at, updated_at FROM categories
     WHERE user_id = $1 AND deleted_at IS NULL
   `;
 
@@ -60,7 +62,7 @@ const getAllCategories = async (user_id, payload) => {
 const getCategoryById = async (id) => {
   const result = await pool.query(
     `
-    SELECT * FROM categories
+    SELECT id, user_id, name, description, created_at, updated_at FROM categories
     WHERE id = $1
     ORDER BY id ASC
     `,
@@ -75,7 +77,7 @@ const createCategory = async (user_id, payload) => {
     `
     INSERT INTO categories (user_id, name, description)
     VALUES ($1, $2, $3)
-    RETURNING id, user_id, name, description, created_at, updated_at, deleted_at
+    RETURNING id, user_id, name, description, created_at, updated_at
     `,
     [user_id, payload.name.trim(), payload.description.trim()],
   );
@@ -110,7 +112,7 @@ const updateCategory = async (id, payload) => {
     UPDATE categories
     SET ${fields.join(", ")}
     WHERE id = $${paramIndex}
-    RETURNING id, user_id, name, description, created_at, updated_at, deleted_at
+    RETURNING id, user_id, name, description, created_at, updated_at
     `,
     values,
   );
@@ -118,18 +120,35 @@ const updateCategory = async (id, payload) => {
   return result.rows[0];
 };
 
-const deleteCategory = async (id) => {
-  const result = await pool.query(
-    `
+const deleteCategory = async (user_id, id) => {
+  return withTx(async (client) => {
+    const result = await client.query(
+      `
     UPDATE categories
     SET deleted_at = CURRENT_TIMESTAMP
     WHERE id = $1
     RETURNING id,user_id, name, description, created_at, updated_at, deleted_at
     `,
-    [id],
-  );
+      [id],
+    );
 
-  return result.rows[0];
+    const deletedCategory = result.rows[0];
+
+    if (!deletedCategory) {
+      return null;
+    }
+
+    await client.query(
+      `
+      UPDATE transactions
+      SET category_id = NULL
+      WHERE category_id = $1 AND user_id = $2
+      `,
+      [id, user_id],
+    );
+
+    return deletedCategory;
+  });
 };
 
 const isCategoryBelongToUser = async (user_id, id) => {

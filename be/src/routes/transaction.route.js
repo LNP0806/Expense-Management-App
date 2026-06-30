@@ -1,7 +1,7 @@
 const express = require("express");
 
 const asyncHandler = require("../middlewares/async-handler.middleware");
-const { requireAuth } = require("../middlewares/auth.middleware");
+const requireAuth = require("../middlewares/auth.middleware");
 const {
   validateBody,
   validateQuery,

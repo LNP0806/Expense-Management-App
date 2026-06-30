@@ -56,9 +56,11 @@ const updateTransactionSchema = z
       .max(1000, "Description must be less than 1000 characters")
       .optional(),
 
-    type: z.enum(["INCOME", "EXPENSE"], {
-      error_map: () => ({ message: "Type must be either INCOME or EXPENSE" }),
-    }),
+    type: z
+      .enum(["INCOME", "EXPENSE"], {
+        error_map: () => ({ message: "Type must be either INCOME or EXPENSE" }),
+      })
+      .optional(),
 
     amount: z
       .number({

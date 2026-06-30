@@ -20,4 +20,6 @@ const withTx = async (callback) => {
   }
 };
 
-module.exports = withTx;
+module.exports = {
+  withTx,
+};

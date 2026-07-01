@@ -12,6 +12,7 @@ const {
   transactionQueryListSchema,
 } = require("../schemas/transaction.schema");
 const transactionController = require("../controllers/transaction.controller");
+const uploadMiddleware = require("../middlewares/upload.middleware");
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ router.get("/:id", asyncHandler(transactionController.getTransactionById));
 
 router.post(
   "/",
+  uploadMiddleware.single("image"),
   validateBody(createTransactionSchema),
   asyncHandler(transactionController.createTransaction),
 );

@@ -1,6 +1,7 @@
 const { successResponse } = require("../utils/api-response");
 
 const transactionService = require("../services/transaction.service");
+const { uploadCloudinary } = require("../utils/cloudinary");
 
 const getTransactionByUser = async (req, res, next) => {
   const user_id = req.user.id;
@@ -34,6 +35,12 @@ const getTransactionById = async (req, res, next) => {
 };
 
 const createTransaction = async (req, res, next) => {
+  let image_url = null;
+
+  if (req.file) {
+    image_url = await uploadCloudinary(req.file.buffer, "transactions");
+  }
+
   const user_id = req.user.id;
 
   const { title, description, type, category_id, amount, transaction_date } =
@@ -45,6 +52,7 @@ const createTransaction = async (req, res, next) => {
     type,
     category_id,
     amount,
+    image_url,
     transaction_date,
   });
 

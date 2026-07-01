@@ -20,7 +20,7 @@ const createTransactionSchema = z.object({
     error_map: () => ({ message: "Type must be either INCOME or EXPENSE" }),
   }),
 
-  amount: z
+  amount: z.coerce
     .number({
       required_error: "Amount is required",
       invalid_type_error: "Amount must be a number",

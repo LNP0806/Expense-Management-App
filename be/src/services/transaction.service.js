@@ -25,6 +25,7 @@ const getTransactionByUser = async (user_id, payload) => {
     type: transaction.type,
     categoryId: transaction.category_id,
     amount: transaction.amount,
+    imageUrl: transaction.image_url,
     transactionDate: transaction.transaction_date,
     createdAt: transaction.created_at,
     updatedAt: transaction.updated_at,
@@ -60,6 +61,7 @@ const getTransactionById = async (user_id, id) => {
     type: transaction.type,
     categoryId: transaction.category_id,
     amount: transaction.amount,
+    imageUrl: transaction.image_url,
     transactionDate: transaction.transaction_date,
     createdAt: transaction.created_at,
     updatedAt: transaction.updated_at,
@@ -67,7 +69,7 @@ const getTransactionById = async (user_id, id) => {
 };
 
 const createTransaction = async (user_id, payload) => {
-  const { title, description, type, category_id, amount, transaction_date } =
+  const { title, description, type, category_id, amount, image_url, transaction_date } =
     payload;
 
   if (category_id) {
@@ -84,6 +86,7 @@ const createTransaction = async (user_id, payload) => {
     type,
     category_id,
     amount,
+    image_url,
     transaction_date,
   });
 
@@ -95,6 +98,7 @@ const createTransaction = async (user_id, payload) => {
     type: newTransaction.type,
     categoryId: newTransaction.category_id,
     amount: newTransaction.amount,
+    imageUrl: newTransaction.image_url,
     transactionDate: newTransaction.transaction_date,
     createdAt: newTransaction.created_at,
     updatedAt: newTransaction.updated_at,
@@ -139,6 +143,7 @@ const updateTransaction = async (user_id, id, payload) => {
     type: updatedTransaction.type,
     categoryId: updatedTransaction.category_id,
     amount: updatedTransaction.amount,
+    imageUrl: updatedTransaction.image_url,
     transactionDate: updatedTransaction.transaction_date,
     createdAt: updatedTransaction.created_at,
     updatedAt: updatedTransaction.updated_at,
@@ -165,6 +170,7 @@ const deleteTransaction = async (user_id, id) => {
     type: deletedTransaction.type,
     categoryId: deletedTransaction.category_id,
     amount: deletedTransaction.amount,
+    imageUrl: deletedTransaction.image_url,
     transactionDate: deletedTransaction.transaction_date,
     createdAt: deletedTransaction.created_at,
     updatedAt: deletedTransaction.updated_at,

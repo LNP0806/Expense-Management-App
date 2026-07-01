@@ -378,24 +378,50 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              },
-              {
                 "key": "Authorization",
                 "value": "Bearer {{auth_token}}",
                 "type": "text"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Lunch at Restaurant\",\n  \"description\": \"Team outing\",\n  \"type\": \"EXPENSE\",\n  \"amount\": 150000,\n  \"category_id\": \"{{category_id}}\",\n  \"transaction_date\": \"2026-06-30\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Lunch at Restaurant",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Team outing",
+                  "type": "text"
+                },
+                {
+                  "key": "type",
+                  "value": "EXPENSE",
+                  "type": "text"
+                },
+                {
+                  "key": "amount",
+                  "value": "150000",
+                  "type": "text"
+                },
+                {
+                  "key": "category_id",
+                  "value": "{{category_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "transaction_date",
+                  "value": "2026-06-30",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
                 }
-              }
+              ]
             },
             "url": {
               "raw": "{{base_url}}/transactions",

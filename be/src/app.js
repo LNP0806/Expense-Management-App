@@ -10,6 +10,7 @@ const authRoutes = require("./routes/auth.routes");
 const categoryRoutes = require("./routes/category.routes");
 const transactionRoutes = require("./routes/transaction.route");
 const budgetRoutes = require("./routes/budget.routes");
+const aiRoutes = require("./routes/ai.routes");
 
 app.use(express.json());
 
@@ -51,6 +52,8 @@ app.use("/categories", categoryRoutes);
 app.use("/transactions", transactionRoutes);
 
 app.use("/budget", budgetRoutes);
+
+app.use("/ai", aiRoutes);
 
 app.use(notFoundMiddleware);
 

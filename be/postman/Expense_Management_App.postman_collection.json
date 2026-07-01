@@ -673,6 +673,49 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "Parse Transaction from Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Hôm nay tôi đã chi 150000 đồng ăn trưa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/parse-transaction",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ai",
+                "parse-transaction"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [

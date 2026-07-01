@@ -163,6 +163,18 @@ const isCategoryBelongToUser = async (user_id, id) => {
   return result.rows[0];
 };
 
+const findAllCategories = async (user_id) => {
+  const result = await pool.query(
+    `
+    SELECT id, user_id, name, description, created_at, updated_at FROM categories
+    WHERE user_id = $1 AND deleted_at IS NULL
+    `,
+    [user_id],
+  );
+
+  return result.rows;
+};
+
 module.exports = {
   getAllCategories,
   getCategoryById,
@@ -170,4 +182,5 @@ module.exports = {
   updateCategory,
   deleteCategory,
   isCategoryBelongToUser,
+  findAllCategories,
 };

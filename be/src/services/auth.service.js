@@ -36,13 +36,7 @@ const login = async (payload) => {
   const token = generateToken(user);
 
   return {
-    user: {
-      id: user.id,
-      fullname: user.fullname,
-      email: user.email,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
-    },
+    user,
     token,
   };
 };
@@ -63,13 +57,7 @@ const register = async (payload) => {
   const token = generateToken(newUser);
 
   return {
-    user: {
-      id: newUser.id,
-      fullname: newUser.fullname,
-      email: newUser.email,
-      createdAt: newUser.created_at,
-      updatedAt: newUser.updated_at,
-    },
+    user,
     token,
   }
 }

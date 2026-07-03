@@ -11,29 +11,16 @@ const getBudgetByUser = async (user_id, payload) => {
 
   const offset = (page - 1) * limit;
 
-  const result = await budgetRepo.getBudgetByUser(user_id, { limit, offset });
+  const budgets = await budgetRepo.getBudgetByUser(user_id, { limit, offset });
 
-  const budgets = result.data.map((budget) => ({
-    id: budget.id,
-    userId: budget.user_id,
-    title: budget.title,
-    description: budget.description,
-    categoryId: budget.category_id,
-    amount: budget.amount,
-    startDate: budget.start_date,
-    endDate: budget.end_date,
-    createdAt: budget.created_at,
-    updatedAt: budget.updated_at,
-  }));
-
-  const totalPages = Math.ceil(result.total / limit);
+  const totalPages = Math.ceil(budgets.total / limit);
 
   return {
     data: budgets,
     metadata: {
       page,
       limit,
-      totalItems: result.total,
+      totalItems: budgets.total,
       totalPages,
       hasNextPage: page < totalPages,
       hasPreviousPage: page > 1,
@@ -45,16 +32,7 @@ const getBudgetById = async (user_id, id) => {
   const budget = await budgetRepo.getBudgetById(user_id, id);
 
   return {
-    id: budget.id,
-    userId: budget.user_id,
-    title: budget.title,
-    description: budget.description,
-    categoryId: budget.category_id,
-    amount: budget.amount,
-    startDate: budget.start_date,
-    endDate: budget.end_date,
-    createdAt: budget.created_at,
-    updatedAt: budget.updated_at,
+    budget,
   };
 };
 
@@ -80,16 +58,7 @@ const createBudget = async (user_id, payload) => {
   });
 
   return {
-    id: newBudget.id,
-    userId: newBudget.user_id,
-    title: newBudget.title,
-    description: newBudget.description,
-    categoryId: newBudget.category_id,
-    amount: newBudget.amount,
-    startDate: newBudget.start_date,
-    endDate: newBudget.end_date,
-    createdAt: newBudget.created_at,
-    updatedAt: newBudget.updated_at,
+    newBudget,
   };
 };
 
@@ -121,16 +90,7 @@ const updateBudget = async (user_id, id, payload) => {
   });
 
   return {
-    id: updatedBudget.id,
-    userId: updatedBudget.user_id,
-    title: updatedBudget.title,
-    description: updatedBudget.description,
-    categoryId: updatedBudget.category_id,
-    amount: updatedBudget.amount,
-    startDate: updatedBudget.start_date,
-    endDate: updatedBudget.end_date,
-    createdAt: updatedBudget.created_at,
-    updatedAt: updatedBudget.updated_at,
+    updatedBudget,
   };
 };
 
@@ -144,16 +104,7 @@ const deleteBudget = async (user_id, id) => {
   const deletedBudget = await budgetRepo.deleteBudget(id);
 
   return {
-    id: deletedBudget.id,
-    userId: deletedBudget.user_id,
-    title: deletedBudget.title,
-    description: deletedBudget.description,
-    categoryId: deletedBudget.category_id,
-    amount: deletedBudget.amount,
-    startDate: deletedBudget.start_date,
-    endDate: deletedBudget.end_date,
-    createdAt: deletedBudget.created_at,
-    updatedAt: deletedBudget.updated_at,
+    deletedBudget,
   };
 };
 

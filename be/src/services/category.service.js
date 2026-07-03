@@ -7,29 +7,20 @@ const getAllCategories = async (user_id, payload) => {
 
   const offset = (page - 1) * limit;
 
-  const result = await categoryRepo.getAllCategories(user_id, {
+  const categories = await categoryRepo.getAllCategories(user_id, {
     keyword,
     limit,
     offset,
   });
 
-  const categories = result.data.map((category) => ({
-    id: category.id,
-    userId: category.user_id,
-    name: category.name,
-    description: category.description,
-    createdAt: category.created_at,
-    updatedAt: category.updated_at,
-  }));
-
-  const totalPages = Math.ceil(result.total / limit);
+  const totalPages = Math.ceil(categories.total / limit);
 
   return {
     data: categories,
     metadata: {
       page,
       limit,
-      totalItems: result.total,
+      totalItems: categories.total,
       totalPages,
       hasNextPage: page < totalPages,
       hasPreviousPage: page > 1,
@@ -50,12 +41,7 @@ const getCategoryById = async (user_id, id) => {
   const category = await categoryRepo.getCategoryById(id);
 
   return {
-    id: category.id,
-    userId: category.user_id,
-    name: category.name,
-    description: category.description,
-    createdAt: category.created_at,
-    updatedAt: category.updated_at,
+    category,
   };
 };
 
@@ -68,12 +54,7 @@ const createCategory = async (user_id, payload) => {
   });
 
   return {
-    id: newCategory.id,
-    userId: newCategory.user_id,
-    name: newCategory.name,
-    description: newCategory.description,
-    createdAt: newCategory.created_at,
-    updatedAt: newCategory.updated_at,
+    newCategory,
   };
 };
 
@@ -95,12 +76,7 @@ const updateCategory = async (user_id, id, payload) => {
   });
 
   return {
-    id: updatedCategory.id,
-    userId: updatedCategory.user_id,
-    name: updatedCategory.name,
-    description: updatedCategory.description,
-    createdAt: updatedCategory.created_at,
-    updatedAt: updatedCategory.updated_at,
+    updatedCategory,
   };
 };
 
@@ -117,13 +93,7 @@ const deleteCategory = async (user_id, id) => {
   const deletedCategory = await categoryRepo.deleteCategory(user_id, id);
 
   return {
-    id: deletedCategory.id,
-    userId: deletedCategory.user_id,
-    name: deletedCategory.name,
-    description: deletedCategory.description,
-    createdAt: deletedCategory.created_at,
-    updatedAt: deletedCategory.updated_at,
-    deletedAt: deletedCategory.deleted_at,
+    deletedCategory,
   };
 };
 

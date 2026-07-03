@@ -79,7 +79,11 @@ const createCategory = async (user_id, payload) => {
     VALUES ($1, $2, $3)
     RETURNING id, user_id, name, description, created_at, updated_at
     `,
-    [user_id, payload.name.trim(), payload.description.trim()],
+    [
+      user_id,
+      payload.name.trim(),
+      payload.description ? description.trim() : null,
+    ],
   );
 
   return result.rows[0];

@@ -51,7 +51,7 @@ app.use("/categories", categoryRoutes);
 
 app.use("/transactions", transactionRoutes);
 
-app.use("/budget", budgetRoutes);
+app.use("/budgets", budgetRoutes);
 
 app.use("/ai", aiRoutes);
 

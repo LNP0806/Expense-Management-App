@@ -5,9 +5,9 @@
 
 ---
 
-## 1. Dashboard Statistics Summary
+## 1. Dashboard Statistics Summary [x]
 
-- **Feature**: Dashboard KPI Cards (Total Income, Total Expense, Balance, Monthly stats, Saving Rate)
+- **Feature**: Dashboard KPI Cards (Monthly stats, Saving Rate)
 - **Why Required**: Dashboard needs aggregated financial data to display KPI cards.
 - **Expected Endpoint**: `GET /transactions/summary` or `GET /dashboard/summary`
 - **Expected HTTP Method**: GET
@@ -17,9 +17,6 @@
 {
   "success": true,
   "data": {
-    "total_income": 25000000,
-    "total_expense": 18500000,
-    "balance": 6500000,
     "monthly_income": 12000000,
     "monthly_expense": 8500000,
     "saving_rate": 29.2
@@ -31,7 +28,7 @@
 
 ---
 
-## 2. Category-wise Expense Breakdown
+## 2. Category-wise Expense Breakdown [x]
 
 - **Feature**: Dashboard donut/bar chart showing spending by category.
 - **Why Required**: Users need a visual breakdown of expenses by category.
@@ -52,7 +49,7 @@
 
 ---
 
-## 3. Weekly/Daily Spending Trend
+## 3. Weekly/Daily Spending Trend []
 
 - **Feature**: Dashboard 7-day spending bar chart.
 - **Why Required**: Users need to see daily spending trends.

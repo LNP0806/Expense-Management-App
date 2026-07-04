@@ -10,6 +10,8 @@ const {
   createTransactionSchema,
   updateTransactionSchema,
   transactionQueryListSchema,
+  getSumaryTransactionSchema,
+  getCategoryBreakdownSchema,
 } = require("../schemas/transaction.schema");
 const transactionController = require("../controllers/transaction.controller");
 const uploadMiddleware = require("../middlewares/upload.middleware");
@@ -22,6 +24,18 @@ router.get(
   "/",
   validateQuery(transactionQueryListSchema),
   asyncHandler(transactionController.getTransactionByUser),
+);
+
+router.get(
+  "/sumary",
+  validateQuery(getSumaryTransactionSchema),
+  asyncHandler(transactionController.getSumaryTransaction),
+);
+
+router.get(
+  "/category-breakdown",
+  validateQuery(getCategoryBreakdownSchema),
+  asyncHandler(transactionController.getCategoryBreakdown),
 );
 
 router.get("/:id", asyncHandler(transactionController.getTransactionById));

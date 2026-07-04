@@ -92,8 +92,15 @@ const getTransactionById = async (user_id, id) => {
 };
 
 const createTransaction = async (user_id, payload) => {
-  const { title, description, category_id, type, amount, image_url, transaction_date } =
-    payload;
+  const {
+    title,
+    description,
+    category_id,
+    type,
+    amount,
+    image_url,
+    transaction_date,
+  } = payload;
 
   const result = await pool.query(
     `
@@ -232,6 +239,40 @@ const deleteTransaction = async (id) => {
   return result.rows[0];
 };
 
+const getSumaryTransaction = async (user_id, payload) => {
+  const { month, year } = payload;
+
+  const result = await pool.query(
+    `
+    SELECT amount, type FROM transactions
+    WHERE EXTRACT(MONTH FROM transaction_date) = $1 
+          AND EXTRACT(YEAR FROM transaction_date) = $2 
+          AND user_id = $3;
+    `,
+    [month, year, user_id],
+  );
+
+  return result.rows;
+};
+
+const getCategoryBreakdown = async (user_id, payload) => {
+  const { month, year, type } = payload;
+
+  const result = await pool.query(
+    `
+    SELECT c.category_id, c.name, SUM(t.amount) AS total_amount FROM transactions AS t
+    JOIN categories AS c ON t.category_id = c.id
+    WHERE EXTRACT(MONTH FROM t.transaction_date) = $1 
+          AND EXTRACT(YEAR FROM t.transaction_date) = $2 
+          AND t.user_id = $3 AND t.type = $4
+    GROUP BY c.id, c.name
+    `,
+    [month, year, user_id, type],
+  );
+
+  return result.rows;
+};
+
 module.exports = {
   getTransactionByUser,
   getTransactionById,
@@ -239,4 +280,6 @@ module.exports = {
   updateTransaction,
   deleteTransaction,
   isTransactionBelongToUser,
+  getSumaryTransaction,
+  getCategoryBreakdown,
 };

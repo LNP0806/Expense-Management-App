@@ -129,10 +129,67 @@ const deleteTransaction = async (user_id, id) => {
   };
 };
 
+const getSumaryTransaction = async (user_id, payload) => {
+  const { month, year } = payload;
+
+  const sumary = await transactionRepo.getSumaryTransaction(user_id, {
+    month,
+    year,
+  });
+
+  let monthly_income = 0;
+  let monthly_expense = 0;
+
+  const transactions = sumary.map((item) => {
+    if (item.type === "INCOME" || item.type === "income") {
+      monthly_income = monthly_income + item.amount;
+    } else {
+      monthly_expense = monthly_expense + item.amount;
+    }
+  });
+
+  const saving_rate =
+    ((monthly_income - monthly_expense) / monthlyIncome) * 100;
+
+  return {
+    monthly_income,
+    monthly_expense,
+    saving_rate,
+  };
+};
+
+const getCategoryBreakdown = async (user_id, payload) => {
+  const { month, year, type } = payload;
+
+  const result = await transactionRepo.getCategoryBreakdown(user_id, {
+    month,
+    year,
+    user_id,
+  });
+
+  const totalAmount = result.reduce(
+    (sum, item) => sum + Number(item.total_amount),
+    0,
+  );
+
+  const data = result.map((item) => ({
+    category_id: item.category_id,
+    category_name: item.name,
+    amount: item.total_amount,
+    percentage: (total_amount * 100) / totalAmount,
+  }));
+
+  return {
+    data,
+  };
+};
+
 module.exports = {
   getTransactionByUser,
   getTransactionById,
   createTransaction,
   updateTransaction,
   deleteTransaction,
+  getSumaryTransaction,
+  getCategoryBreakdown,
 };

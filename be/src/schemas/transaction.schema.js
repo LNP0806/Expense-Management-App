@@ -112,8 +112,39 @@ const transactionQueryListSchema = z.object({
     .optional(),
 });
 
+const getSumaryTransactionSchema = z.object({
+  month: z.coerce
+    .number()
+    .int("Month must be an integer")
+    .min(1, "Month must be between 1 and 12")
+    .max(12, "Month must be between 1 and 12"),
+
+  year: z.coerce
+    .number()
+    .int("Year must be an integer")
+    .positive("Year must be greater than 0"),
+});
+
+const getCategoryBreakdownSchema = z.object({
+  month: z.coerce
+    .number()
+    .int("Month must be an integer")
+    .min(1, "Month must be between 1 and 12")
+    .max(12, "Month must be between 1 and 12"),
+
+  year: z.coerce
+    .number()
+    .int("Year must be an integer")
+    .positive("Year must be greater than 0"),
+  type: z.enum(["INCOME", "EXPENSE"], {
+    error_map: () => ({ message: "Type must be either INCOME or EXPENSE" }),
+  }),
+});
+
 module.exports = {
   createTransactionSchema,
   updateTransactionSchema,
   transactionQueryListSchema,
+  getSumaryTransactionSchema,
+  getCategoryBreakdownSchema,
 };

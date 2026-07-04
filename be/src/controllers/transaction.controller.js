@@ -89,10 +89,39 @@ const deleteTransaction = async (req, res, next) => {
   return successResponse(res, "Delete transaction successfully", result);
 };
 
+const getSumaryTransaction = async (req, res, next) => {
+  const user_id = req.user.id;
+
+  const { month, year } = req.validateQuery;
+
+  const result = await transactionService.getSumaryTransaction(user_id, {
+    month,
+    year,
+  });
+
+  return successResponse(res, "Get sumary transactions successfully", result);
+};
+
+const getCategoryBreakdown = async (req, res, next) => {
+  const user_id = req.user.id;
+
+  const { month, year, type } = req.validateQuery;
+
+  const result = await transactionService.getCategoryBreakdown(user_id, {
+    month,
+    year,
+    type,
+  });
+
+  return successResponse(res, "Get categories breakdown successfully", result);
+};
+
 module.exports = {
   getTransactionById,
   getTransactionByUser,
   createTransaction,
   updateTransaction,
   deleteTransaction,
+  getSumaryTransaction,
+  getCategoryBreakdown,
 };

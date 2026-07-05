@@ -38,6 +38,11 @@ router.get(
   asyncHandler(transactionController.getCategoryBreakdown),
 );
 
+router.get(
+  "/daily-spending",
+  asyncHandler(transactionController.getDailySpending),
+);
+
 router.get("/:id", asyncHandler(transactionController.getTransactionById));
 
 router.post(

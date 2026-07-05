@@ -49,21 +49,45 @@ export default function BudgetsPage() {
     try {
       setLoading(true);
       setError(false);
+
+      // 1. Try to get progress data from real API
+      try {
+        const res = await budgetsApi.getProgress();
+        if (res.data.success) {
+          const rawData = res.data.data?.data || res.data.data || [];
+          const budgetsData = rawData.map((b) => {
+            const percentage = b.percentage !== undefined ? b.percentage : (b.precentage !== undefined ? b.precentage : (Number(b.spent || 0) / Number(b.amount || 1)) * 100);
+            
+            let status = 'normal';
+            if (percentage >= 100) status = 'exceeded';
+            else if (percentage >= 80) status = 'warning';
+            
+            return {
+              ...b,
+              spent: Number(b.spent || 0),
+              percentage,
+              status,
+            };
+          });
+          setBudgets(budgetsData);
+          return;
+        }
+      } catch (err) {
+        console.warn('Real budget progress API failed, falling back to basic budgets list:', err);
+      }
+
+      // 2. Fallback: Fetch basic budgets and generate mock progress
       const res = await budgetsApi.getAll();
       if (res.data.success) {
         const rawData = res.data.data;
         const list = Array.isArray(rawData) ? rawData : (rawData?.data || []);
-        // Enforce mock details if backend did not calculate spent
         const budgetsData = list.map((b) => {
-          // If spent is not returned by API, generate mock spent between 40% and 95% of amount
           const spent = b.spent !== undefined ? b.spent : Math.floor(b.amount * (0.4 + Math.random() * 0.55));
           const percentage = b.percentage !== undefined ? b.percentage : (spent / b.amount) * 100;
-          let status = b.status;
-          if (!status) {
-            if (percentage >= 100) status = 'exceeded';
-            else if (percentage >= 80) status = 'warning';
-            else status = 'normal';
-          }
+          let status = 'normal';
+          if (percentage >= 100) status = 'exceeded';
+          else if (percentage >= 80) status = 'warning';
+          
           return {
             ...b,
             spent,

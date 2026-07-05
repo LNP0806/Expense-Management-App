@@ -247,7 +247,8 @@ const getSumaryTransaction = async (user_id, payload) => {
     SELECT amount, type FROM transactions
     WHERE EXTRACT(MONTH FROM transaction_date) = $1 
           AND EXTRACT(YEAR FROM transaction_date) = $2 
-          AND user_id = $3;
+          AND user_id = $3
+          AND deleted_at IS NULL
     `,
     [month, year, user_id],
   );
@@ -260,14 +261,31 @@ const getCategoryBreakdown = async (user_id, payload) => {
 
   const result = await pool.query(
     `
-    SELECT c.category_id, c.name, SUM(t.amount) AS total_amount FROM transactions AS t
-    JOIN categories AS c ON t.category_id = c.id
+    SELECT c.id AS category_id, COALESCE(c.name, 'Chưa phân loại') AS name, COALESCE(SUM(t.amount), 0) AS total_amount
+    FROM transactions t
+    LEFT JOIN categories c ON t.category_id = c.id
     WHERE EXTRACT(MONTH FROM t.transaction_date) = $1 
           AND EXTRACT(YEAR FROM t.transaction_date) = $2 
           AND t.user_id = $3 AND t.type = $4
+          AND t.deleted_at IS NULL
     GROUP BY c.id, c.name
     `,
     [month, year, user_id, type],
+  );
+
+  return result.rows;
+};
+
+const getDailySpending = async (user_id) => {
+  const result = await pool.query(
+    `
+    SELECT transaction_date AS date, COALESCE(SUM(amount), 0) AS amount
+    FROM transactions
+    WHERE user_id = $1 AND type = 'EXPENSE' 
+          AND deleted_at IS NULL
+    GROUP BY transaction_date
+    `,
+    [user_id],
   );
 
   return result.rows;
@@ -282,4 +300,5 @@ module.exports = {
   isTransactionBelongToUser,
   getSumaryTransaction,
   getCategoryBreakdown,
+  getDailySpending,
 };

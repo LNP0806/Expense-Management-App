@@ -6,4 +6,5 @@ export const budgetsApi = {
   create: (data) => apiClient.post('/budgets', data),
   update: (id, data) => apiClient.patch(`/budgets/${id}`, data),
   delete: (id) => apiClient.delete(`/budgets/${id}`),
+  getProgress: () => apiClient.get('/budgets/spent'),
 };

@@ -8,4 +8,7 @@ export const transactionsApi = {
   }),
   update: (id, data) => apiClient.patch(`/transactions/${id}`, data),
   delete: (id) => apiClient.delete(`/transactions/${id}`),
+  getSummary: (params = {}) => apiClient.get('/transactions/sumary', { params }),
+  getCategoryBreakdown: (params = {}) => apiClient.get('/transactions/category-breakdown', { params }),
+  getDailySpending: () => apiClient.get('/transactions/daily-spending'),
 };

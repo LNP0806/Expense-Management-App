@@ -116,6 +116,14 @@ const getCategoryBreakdown = async (req, res, next) => {
   return successResponse(res, "Get categories breakdown successfully", result);
 };
 
+const getDailySpending = async (req, res, next) => {
+  const user_id = req.user.id;
+
+  const result = await transactionService.getDailySpending(user_id);
+
+  return successResponse(res, "Get 7-days spending successfully", result);
+};
+
 module.exports = {
   getTransactionById,
   getTransactionByUser,
@@ -124,4 +132,5 @@ module.exports = {
   deleteTransaction,
   getSumaryTransaction,
   getCategoryBreakdown,
+  getDailySpending,
 };

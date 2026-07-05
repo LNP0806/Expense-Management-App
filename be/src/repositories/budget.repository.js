@@ -180,6 +180,29 @@ const isBudgetBelongToUser = async (user_id, budget_id) => {
   return result.rows[0] || null;
 };
 
+const getBudgetProgress = async (user_id) => {
+  const result = await pool.query(
+    `
+    SELECT 
+    b.id, 
+    b.title, 
+    b.amount, 
+    COALESCE(SUM(t.amount), 0) AS spent
+    FROM budgets b
+    LEFT JOIN transactions t ON b.category_id = t.category_id 
+              AND t.user_id = b.user_id
+              AND t.type = 'EXPENSE'
+              AND t.transaction_date BETWEEN b.start_date AND b.end_date
+    WHERE b.user_id = $1 AND b.deleted_at IS NUll
+    GROUP BY b.id, b.title, b.amount, b.start_date
+    ORDER BY b.start_date DESC;
+    `,
+    [user_id],
+  );
+
+  return result.rows;
+};
+
 module.exports = {
   getBudgetByUser,
   getBudgetById,
@@ -187,4 +210,5 @@ module.exports = {
   updateBudget,
   deleteBudget,
   isBudgetBelongToUser,
+  getBudgetProgress,
 };

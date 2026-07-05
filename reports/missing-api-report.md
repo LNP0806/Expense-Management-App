@@ -13,6 +13,7 @@
 - **Expected HTTP Method**: GET
 - **Expected Request**: Query params: `month` (optional), `year` (optional)
 - **Expected Response**:
+
 ```json
 {
   "success": true,
@@ -23,6 +24,7 @@
   }
 }
 ```
+
 - **Blocking Level**: Critical
 - **Current Workaround**: Mock data in `fe/src/api/dashboard.api.js`
 
@@ -36,47 +38,54 @@
 - **Expected HTTP Method**: GET
 - **Expected Request**: Query params: `month`, `year`, `type=EXPENSE`
 - **Expected Response**:
+
 ```json
 {
   "success": true,
   "data": [
-    { "category_id": "uuid", "category_name": "Ăn uống", "amount": 3200000, "percentage": 37.6 }
+    {
+      "category_id": "uuid",
+      "category_name": "Ăn uống",
+      "amount": 3200000,
+      "percentage": 37.6
+    }
   ]
 }
 ```
+
 - **Blocking Level**: Critical
 - **Current Workaround**: Mock data in `fe/src/api/dashboard.api.js`
 
 ---
 
-## 3. Weekly/Daily Spending Trend []
+## 3. Weekly/Daily Spending Trend [x]
 
 - **Feature**: Dashboard 7-day spending bar chart.
 - **Why Required**: Users need to see daily spending trends.
 - **Expected Endpoint**: `GET /transactions/daily-spending` or `GET /dashboard/weekly-spending`
 - **Expected HTTP Method**: GET
-- **Expected Request**: Query params: `days=7`
 - **Expected Response**:
+
 ```json
 {
   "success": true,
-  "data": [
-    { "date": "2026-07-01", "amount": 350000 }
-  ]
+  "data": [{ "date": "2026-07-01", "amount": 350000 }]
 }
 ```
+
 - **Blocking Level**: Medium
 - **Current Workaround**: Mock data with random values in `fe/src/api/dashboard.api.js`
 
 ---
 
-## 4. Budget Progress/Spending Data
+## 4. Budget Progress/Spending Data []
 
 - **Feature**: Budget cards showing actual spent amount vs budget.
 - **Why Required**: Users need to see how much they've spent against each budget.
 - **Expected Endpoint**: `GET /budgets` should include `spent` and `remaining` fields, or `GET /budgets/:id/progress`
 - **Expected HTTP Method**: GET
 - **Expected Response** (enhanced budget object):
+
 ```json
 {
   "id": "uuid",
@@ -85,9 +94,9 @@
   "spent": 3750000,
   "remaining": 1250000,
   "percentage": 75,
-  "status": "warning"
 }
 ```
+
 - **Blocking Level**: Critical
 - **Current Workaround**: Random mock progress data calculated client-side in `fe/src/pages/BudgetsPage.jsx`
 
@@ -101,6 +110,7 @@
 - **Expected HTTP Method**: POST
 - **Expected Request**: multipart/form-data with `image` file and optional `caption` text.
 - **Expected Response**:
+
 ```json
 {
   "success": true,
@@ -114,6 +124,7 @@
   }
 }
 ```
+
 - **Blocking Level**: Medium (currently using text-based caption analysis via `/ai/parse-transaction`)
 - **Current Workaround**: Users must enter text description; image is only attached to the final transaction during save in `fe/src/pages/QuickCapturePage.jsx`
 
@@ -127,6 +138,7 @@
 - **Expected HTTP Method**: GET
 - **Expected Request**: Query params: `month`, `year`
 - **Expected Response**:
+
 ```json
 {
   "success": true,
@@ -137,6 +149,7 @@
   }
 }
 ```
+
 - **Blocking Level**: Low (can be added later)
 - **Current Workaround**: Feature not implemented in frontend.
 

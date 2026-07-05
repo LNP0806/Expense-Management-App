@@ -108,10 +108,28 @@ const deleteBudget = async (user_id, id) => {
   };
 };
 
+const getBudgetProgress = async (user_id) => {
+  const result = await budgetRepo.getBudgetProgress(user_id);
+
+  const data = result.map((item) => ({
+    id: item.id,
+    title: item.title,
+    amount: item.amount,
+    spent: item.spent,
+    remaining: item.amount - item.spent,
+    precentage: (Number(item.spent) * 100) / item.amount,
+  }));
+
+  return {
+    data,
+  };
+};
+
 module.exports = {
   getBudgetByUser,
   getBudgetById,
   createBudget,
   updateBudget,
   deleteBudget,
+  getBudgetProgress,
 };

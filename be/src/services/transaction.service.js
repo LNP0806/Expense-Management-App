@@ -142,14 +142,14 @@ const getSumaryTransaction = async (user_id, payload) => {
 
   const transactions = sumary.map((item) => {
     if (item.type === "INCOME" || item.type === "income") {
-      monthly_income = monthly_income + item.amount;
+      monthly_income = monthly_income + Number(item.amount);
     } else {
-      monthly_expense = monthly_expense + item.amount;
+      monthly_expense = monthly_expense + Number(item.amount);
     }
   });
 
   const saving_rate =
-    ((monthly_income - monthly_expense) / monthlyIncome) * 100;
+    ((monthly_income - monthly_expense) / monthly_income) * 100;
 
   return {
     monthly_income,
@@ -164,7 +164,7 @@ const getCategoryBreakdown = async (user_id, payload) => {
   const result = await transactionRepo.getCategoryBreakdown(user_id, {
     month,
     year,
-    user_id,
+    type,
   });
 
   const totalAmount = result.reduce(
@@ -176,11 +176,19 @@ const getCategoryBreakdown = async (user_id, payload) => {
     category_id: item.category_id,
     category_name: item.name,
     amount: item.total_amount,
-    percentage: (total_amount * 100) / totalAmount,
+    percentage: (Number(item.total_amount) * 100) / totalAmount,
   }));
 
   return {
     data,
+  };
+};
+
+const getDailySpending = async (user_id) => {
+  const result = await transactionRepo.getDailySpending(user_id);
+
+  return {
+    result,
   };
 };
 
@@ -192,4 +200,5 @@ module.exports = {
   deleteTransaction,
   getSumaryTransaction,
   getCategoryBreakdown,
+  getDailySpending,
 };

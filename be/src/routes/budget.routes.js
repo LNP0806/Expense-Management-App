@@ -23,6 +23,8 @@ router.get(
   asyncHandler(budgetController.getBudgetByUser),
 );
 
+router.get("/spent", asyncHandler(budgetController.getBudgetProgress));
+
 router.get("/:id", asyncHandler(budgetController.getBudgetById));
 
 router.post(

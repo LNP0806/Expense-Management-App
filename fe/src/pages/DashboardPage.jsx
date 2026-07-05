@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { TrendUp, TrendDown, Scales, ArrowsLeftRight } from '@phosphor-icons/react';
+import { TrendUp, TrendDown, Scales, ArrowsLeftRight, PiggyBank } from '@phosphor-icons/react';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -31,6 +31,11 @@ export default function DashboardPage() {
   const [categories, setCategories] = useState([]);
   const [recentTransactions, setRecentTransactions] = useState([]);
 
+  const [selectedMonthYear, setSelectedMonthYear] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -40,22 +45,104 @@ export default function DashboardPage() {
         setLoading(true);
         setError(false);
 
-        const [summaryRes, weeklyRes, categoriesRes, transactionsRes] = await Promise.all([
-          dashboardApi.getSummary(),
-          dashboardApi.getWeeklySpending(),
-          dashboardApi.getCategoryBreakdown(),
-          transactionsApi.getAll({ limit: 5 }),
-        ]);
+        let summaryData = null;
+        let weeklyData = [];
+        let categoriesData = [];
+        let transactionsList = [];
 
-        if (summaryRes.data.success) setSummary(summaryRes.data.data);
-        if (weeklyRes.data.success) setWeeklySpending(weeklyRes.data.data);
-        if (categoriesRes.data.success) setCategories(categoriesRes.data.data);
+        const [yearStr, monthStr] = selectedMonthYear.split('-');
+        const currentMonth = parseInt(monthStr, 10);
+        const currentYear = parseInt(yearStr, 10);
 
-        if (transactionsRes.data.success) {
-          const rawData = transactionsRes.data.data;
-          const list = Array.isArray(rawData) ? rawData : (rawData?.data || []);
-          setRecentTransactions(list);
+        // 1. Try to fetch summary from real API, fallback to mock if it fails
+        try {
+          const summaryRes = await transactionsApi.getSummary({ month: currentMonth, year: currentYear });
+          if (summaryRes.data.success) {
+            const rawSum = summaryRes.data.data;
+            const inc = Number(rawSum.monthly_income);
+            const exp = Number(rawSum.monthly_expense);
+            
+            if (isNaN(inc) || isNaN(exp)) {
+              throw new Error('Backend returned invalid numeric strings (NaN) due to string concatenation bug');
+            }
+
+            summaryData = {
+              total_income: inc,
+              total_expense: exp,
+              balance: inc - exp,
+              saving_rate: Number(rawSum.saving_rate || 0),
+            };
+          }
+        } catch (err) {
+          console.warn('Real summary API failed, falling back to mock:', err);
+          const mockSummary = await dashboardApi.getSummary();
+          summaryData = mockSummary.data.data;
         }
+
+        // 2. Try to fetch weekly spending from real API, fallback to mock if it fails
+        try {
+          const weeklyRes = await transactionsApi.getDailySpending();
+          if (weeklyRes.data.success) {
+            const dailyList = weeklyRes.data.data?.result || [];
+            const sortedDaily = [...dailyList].sort((a, b) => new Date(a.date) - new Date(b.date));
+            weeklyData = sortedDaily.map(item => {
+              const dateObj = new Date(item.date);
+              const label = dateObj.toLocaleDateString('vi-VN', { weekday: 'short', day: 'numeric', month: 'numeric' });
+              return {
+                label,
+                amount: Number(item.amount),
+              };
+            });
+          }
+        } catch (err) {
+          console.warn('Real weekly spending API failed, falling back to mock:', err);
+          const mockWeekly = await dashboardApi.getWeeklySpending();
+          weeklyData = mockWeekly.data.data;
+        }
+
+        // 3. Try to fetch category breakdown from real API, fallback to mock if it fails
+        try {
+          const categoriesRes = await transactionsApi.getCategoryBreakdown({
+            month: currentMonth,
+            year: currentYear,
+            type: 'EXPENSE',
+          });
+          if (categoriesRes.data.success) {
+            const rawCats = categoriesRes.data.data?.data || categoriesRes.data.data || [];
+            const totalSum = rawCats.reduce((sum, cat) => sum + Number(cat.amount || 0), 0);
+            const colors = ['#10b981', '#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+            categoriesData = rawCats.map((cat, idx) => {
+              const amount = Number(cat.amount || 0);
+              const percentage = totalSum > 0 ? (amount / totalSum) * 100 : 0;
+              return {
+                category_name: cat.category_name,
+                amount,
+                percentage: Number(percentage.toFixed(1)),
+                color: colors[idx % colors.length],
+              };
+            });
+          }
+        } catch (err) {
+          console.warn('Real category breakdown API failed, falling back to mock:', err);
+          const mockCats = await dashboardApi.getCategoryBreakdown();
+          categoriesData = mockCats.data.data;
+        }
+
+        // 4. Fetch recent transactions
+        try {
+          const transactionsRes = await transactionsApi.getAll({ limit: 5 });
+          if (transactionsRes.data.success) {
+            const rawData = transactionsRes.data.data;
+            transactionsList = Array.isArray(rawData) ? rawData : (rawData?.data || []);
+          }
+        } catch (err) {
+          console.error('Error fetching recent transactions:', err);
+        }
+
+        setSummary(summaryData);
+        setWeeklySpending(weeklyData);
+        setCategories(categoriesData);
+        setRecentTransactions(transactionsList);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError(true);
@@ -66,7 +153,7 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData();
-  }, [addToast]);
+  }, [selectedMonthYear, addToast]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -91,7 +178,7 @@ export default function DashboardPage() {
       {
         label: 'Chi tiêu (đ)',
         data: weeklySpending.map((d) => d.amount),
-        backgroundColor: '#10b981',
+        backgroundColor: '#ef4444',
         borderRadius: 6,
         borderSkipped: false,
       },
@@ -171,17 +258,32 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-[1200px] mx-auto flex flex-col gap-6 pb-24 md:pb-8 animate-fade-in">
-      <header className="flex flex-col text-left mb-2">
-        <h1 className="text-2xl md:text-3xl font-bold text-text-primary tracking-tight">
-          {getGreeting()}, {user?.fullname || 'Bạn'}
-        </h1>
-        <p className="text-sm text-text-secondary mt-1">{getFormattedDate()}</p>
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+        <div className="flex flex-col text-left">
+          <h1 className="text-2xl md:text-3xl font-bold text-text-primary tracking-tight">
+            {getGreeting()}, {user?.fullname || 'Bạn'}
+          </h1>
+          <p className="text-sm text-text-secondary mt-1">{getFormattedDate()}</p>
+        </div>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <label htmlFor="monthPicker" className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+            Tháng:
+          </label>
+          <input
+            id="monthPicker"
+            type="month"
+            value={selectedMonthYear}
+            onChange={(e) => setSelectedMonthYear(e.target.value)}
+            className="bg-secondary-dark border border-border-dark text-text-primary px-3 py-2 rounded-xl text-sm focus:outline-hidden focus:border-accent-green cursor-pointer font-sans transition-colors duration-150 hover:border-border-dark-light"
+          />
+        </div>
       </header>
 
       {/* KPI Section */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
         {loading ? (
           <>
+            <div className="h-24 skeleton-shimmer" />
             <div className="h-24 skeleton-shimmer" />
             <div className="h-24 skeleton-shimmer" />
             <div className="h-24 skeleton-shimmer" />
@@ -215,6 +317,16 @@ export default function DashboardPage() {
               <div className="flex flex-col text-left overflow-hidden">
                 <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">Số dư</span>
                 <span className="text-lg font-bold text-text-primary mt-0.5 truncate">{formatCurrency(summary?.balance)}</span>
+              </div>
+            </Card>
+
+            <Card padding="none" className="flex items-center gap-4 bg-secondary-dark border border-border-dark border-l-4 border-l-info py-4 px-6 rounded-xl transition-all duration-200 hover:-translate-y-0.5 shadow-xs">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-info-bg text-info flex-shrink-0">
+                <PiggyBank size={24} weight="bold" />
+              </div>
+              <div className="flex flex-col text-left overflow-hidden">
+                <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">Tiết kiệm</span>
+                <span className="text-lg font-bold text-text-primary mt-0.5 truncate">{formatPercent(summary?.saving_rate || 0)}</span>
               </div>
             </Card>
           </>

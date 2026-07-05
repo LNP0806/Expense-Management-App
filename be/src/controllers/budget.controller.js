@@ -76,10 +76,19 @@ const deleteBudget = async (req, res, next) => {
   return successResponse(res, "Delete budget successfully", result);
 };
 
+const getBudgetProgress = async (req, res, next) => {
+  const user_id = req.user.id;
+
+  const result = await budgetService.getBudgetProgress(user_id);
+
+  return successResponse(res, "Get budgets progress successfully", result);
+};
+
 module.exports = {
   getBudgetByUser,
   getBudgetById,
   createBudget,
   updateBudget,
   deleteBudget,
+  getBudgetProgress,
 };

@@ -40,16 +40,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (data: any) => {
     const res = await authApi.login(data);
     if (res.data.success) {
-      const { user: userData, token: jwtToken } = res.data.data;
+      const { user: userData, accessToken: jwtToken, refreshToken } = res.data.data;
       setToken(jwtToken);
       setUser(userData);
       await SecureStore.setItemAsync('token', jwtToken);
       await SecureStore.setItemAsync('user', JSON.stringify(userData));
+      if (refreshToken) {
+        await SecureStore.setItemAsync('refreshToken', refreshToken);
+      }
     }
   };
 
   const register = async (data: any) => {
-    await authApi.register(data);
+    const res = await authApi.register(data);
+    if (res.data.success) {
+      const { user: userData, accessToken: jwtToken, refreshToken } = res.data.data;
+      setToken(jwtToken);
+      setUser(userData);
+      await SecureStore.setItemAsync('token', jwtToken);
+      await SecureStore.setItemAsync('user', JSON.stringify(userData));
+      if (refreshToken) {
+        await SecureStore.setItemAsync('refreshToken', refreshToken);
+      }
+    }
   };
 
   const logout = async () => {
@@ -57,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     await SecureStore.deleteItemAsync('token');
     await SecureStore.deleteItemAsync('user');
+    await SecureStore.deleteItemAsync('refreshToken');
   };
 
   return (

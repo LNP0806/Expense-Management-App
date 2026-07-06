@@ -32,7 +32,15 @@ const createUser = async (payload) => {
   return result.rows[0];
 };
 
+const updateRefreshToken = async (user_id, refreshToken) => {
+  await pool.query("UPDATE users SET refresh_token = $1 WHERE id = $2", [
+    refreshToken,
+    user.id,
+  ]);
+};
+
 module.exports = {
   getUserbyEmail,
   createUser,
+  updateRefreshToken,
 };

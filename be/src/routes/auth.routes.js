@@ -19,4 +19,6 @@ router.post(
   asyncHandler(authController.register),
 );
 
+router.post("/refresh", asyncHandler(authController.handleRefreshToken));
+
 module.exports = router;

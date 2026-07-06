@@ -1,4 +1,5 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -13,6 +14,8 @@ const budgetRoutes = require("./routes/budget.routes");
 const aiRoutes = require("./routes/ai.routes");
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.use(requestLoggerMiddleware);
 

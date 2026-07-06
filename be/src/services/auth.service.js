@@ -5,16 +5,29 @@ const AppError = require("../utils/app-error");
 const userRepo = require("../repositories/user.repository");
 
 const generateToken = (user) => {
-  return jwt.sign(
+  const accessToken = jwt.sign(
     {
       id: user.id,
       email: user.email,
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRES_IN || "1d",
+      expiresIn: process.env.JWT_EXPIRES_IN || "15m",
     },
   );
+
+  const refreshToken = jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+    },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+    },
+  );
+
+  return { accessToken, refreshToken };
 };
 
 const login = async (payload) => {
@@ -33,11 +46,14 @@ const login = async (payload) => {
     throw new AppError("Invalid email or password", 404);
   }
 
-  const token = generateToken(user);
+  const { accessToken, refreshToken } = generateToken(user);
+
+  await userRepo.updateRefreshToken(user.id, refreshToken);
 
   return {
     user,
-    token,
+    accessToken,
+    refreshToken,
   };
 };
 
@@ -52,17 +68,24 @@ const register = async (payload) => {
 
   const password = await bcrypt.hash(payload.password.trim(), 10);
 
-  const newUser = await userRepo.createUser({ fullname: payload.fullname, email, password });
+  const newUser = await userRepo.createUser({
+    fullname: payload.fullname,
+    email,
+    password,
+  });
 
-  const token = generateToken(newUser);
+  const { accessToken, refreshToken } = generateToken(newUser);
+
+  await userRepo.updateRefreshToken(newUser.id, refreshToken);
 
   return {
-    newUser,
-    token,
-  }
-}
+    user: newUser,
+    accessToken,
+    refreshToken,
+  };
+};
 
 module.exports = {
   login,
   register,
-}
+};

@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const res = await authApi.login({ email, password });
-    const { user: userData, token: authToken } = res.data.data;
+    const { user: userData, accessToken: authToken } = res.data.data;
     localStorage.setItem(STORAGE_KEYS.TOKEN, authToken);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
     setToken(authToken);

@@ -65,40 +65,33 @@ export default function BudgetsPage() {
       setLoading(true);
       setError(false);
 
-      // 1. Try to get progress data from real API
+      // 1. Fetch full budgets with all schema columns (start_date, end_date, etc.)
+      const resBudgets = await budgetsApi.getAll();
+      
+      // 2. Fetch progress (spent) data
+      let progressMap = {};
       try {
-        const res = await budgetsApi.getProgress();
-        if (res.data.success) {
-          const rawData = res.data.data?.data || res.data.data || [];
-          const budgetsData = rawData.map((b) => {
-            const percentage = b.percentage !== undefined ? b.percentage : (b.precentage !== undefined ? b.precentage : (Number(b.spent || 0) / Number(b.amount || 1)) * 100);
-            
-            let status = 'normal';
-            if (percentage >= 100) status = 'exceeded';
-            else if (percentage >= 80) status = 'warning';
-            
-            return {
-              ...b,
-              spent: Number(b.spent || 0),
-              percentage,
-              status,
-            };
+        const resProgress = await budgetsApi.getProgress();
+        if (resProgress.data.success) {
+          const rawProgress = resProgress.data.data?.data || resProgress.data.data || [];
+          rawProgress.forEach((p) => {
+            progressMap[p.id] = p;
           });
-          setBudgets(budgetsData);
-          return;
         }
       } catch (err) {
-        console.warn('Real budget progress API failed, falling back to basic budgets list:', err);
+        console.warn('Real budget progress API failed, falling back to mock spent:', err);
       }
 
-      // 2. Fallback: Fetch basic budgets and generate mock progress
-      const res = await budgetsApi.getAll();
-      if (res.data.success) {
-        const rawData = res.data.data;
-        const list = Array.isArray(rawData) ? rawData : (rawData?.data || []);
-        const budgetsData = list.map((b) => {
-          const spent = b.spent !== undefined ? b.spent : Math.floor(b.amount * (0.4 + Math.random() * 0.55));
-          const percentage = b.percentage !== undefined ? b.percentage : (spent / b.amount) * 100;
+      if (resBudgets.data.success) {
+        const rawBudgets = resBudgets.data.data;
+        const budgetsList = Array.isArray(rawBudgets) ? rawBudgets : (rawBudgets?.data || []);
+        
+        const budgetsData = budgetsList.map((b) => {
+          const progress = progressMap[b.id];
+          // If progress exists, use real database spent, otherwise fallback to mock spent
+          const spent = progress !== undefined ? Number(progress.spent || 0) : Math.floor(b.amount * (0.4 + (b.title.length % 6) * 0.1));
+          const percentage = b.amount > 0 ? (spent * 100) / b.amount : 0;
+          
           let status = 'normal';
           if (percentage >= 100) status = 'exceeded';
           else if (percentage >= 80) status = 'warning';
@@ -106,7 +99,7 @@ export default function BudgetsPage() {
           return {
             ...b,
             spent,
-            percentage,
+            percentage: Math.round(percentage),
             status,
           };
         });

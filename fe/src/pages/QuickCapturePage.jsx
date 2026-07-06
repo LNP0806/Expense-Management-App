@@ -15,7 +15,8 @@ import Card from '../components/common/Card';
 export default function QuickCapturePage() {
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   const [step, setStep] = useState(1); // 1: Capture, 2: Parsing, 3: Confirm, 4: Success
 
@@ -73,8 +74,11 @@ export default function QuickCapturePage() {
   const removeImage = () => {
     setImageFile(null);
     setImagePreview('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = '';
     }
   };
 
@@ -230,16 +234,35 @@ export default function QuickCapturePage() {
           ) : (
             <div 
               className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border-dark rounded-2xl py-12 text-text-muted cursor-pointer transition-colors duration-150 hover:border-accent-green hover:text-text-secondary" 
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => cameraInputRef.current?.click()}
             >
               <Camera size={44} weight="light" className="text-text-muted" />
-              <span className="text-sm font-medium">Nhấp để chụp hoặc tải ảnh hóa đơn (tùy chọn)</span>
+              <span className="text-sm font-medium">Chụp ảnh hóa đơn bằng Camera (tùy chọn)</span>
             </div>
           )}
 
+          <div className="text-center -mt-2">
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              className="text-sm font-semibold text-accent-green hover:text-accent-green-hover transition-colors cursor-pointer hover:underline inline-flex items-center gap-1.5"
+            >
+              Hoặc chọn ảnh từ thư viện
+            </button>
+          </div>
+
           <input
             type="file"
-            ref={fileInputRef}
+            ref={cameraInputRef}
+            style={{ display: 'none' }}
+            accept="image/*"
+            capture="environment"
+            onChange={handleImageChange}
+          />
+
+          <input
+            type="file"
+            ref={galleryInputRef}
             style={{ display: 'none' }}
             accept="image/*"
             onChange={handleImageChange}

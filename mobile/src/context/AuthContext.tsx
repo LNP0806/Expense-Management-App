@@ -40,12 +40,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (data: any) => {
     const res = await authApi.login(data);
     if (res.data.success) {
-      const { user: userData, accessToken: jwtToken, refreshToken } = res.data.data;
-      setToken(jwtToken);
-      setUser(userData);
-      await SecureStore.setItemAsync('token', jwtToken);
-      await SecureStore.setItemAsync('user', JSON.stringify(userData));
-      if (refreshToken) {
+      const userData = res.data.data.user;
+      const jwtToken = res.data.data.accessToken || res.data.data.token;
+      const refreshToken = res.data.data.refreshToken;
+
+      setToken(jwtToken || null);
+      setUser(userData || null);
+
+      if (jwtToken && typeof jwtToken === 'string') {
+        await SecureStore.setItemAsync('token', jwtToken);
+      }
+      if (userData) {
+        await SecureStore.setItemAsync('user', JSON.stringify(userData));
+      }
+      if (refreshToken && typeof refreshToken === 'string') {
         await SecureStore.setItemAsync('refreshToken', refreshToken);
       }
     }
@@ -54,12 +62,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (data: any) => {
     const res = await authApi.register(data);
     if (res.data.success) {
-      const { user: userData, accessToken: jwtToken, refreshToken } = res.data.data;
-      setToken(jwtToken);
-      setUser(userData);
-      await SecureStore.setItemAsync('token', jwtToken);
-      await SecureStore.setItemAsync('user', JSON.stringify(userData));
-      if (refreshToken) {
+      const userData = res.data.data.user;
+      const jwtToken = res.data.data.accessToken || res.data.data.token;
+      const refreshToken = res.data.data.refreshToken;
+
+      setToken(jwtToken || null);
+      setUser(userData || null);
+
+      if (jwtToken && typeof jwtToken === 'string') {
+        await SecureStore.setItemAsync('token', jwtToken);
+      }
+      if (userData) {
+        await SecureStore.setItemAsync('user', JSON.stringify(userData));
+      }
+      if (refreshToken && typeof refreshToken === 'string') {
         await SecureStore.setItemAsync('refreshToken', refreshToken);
       }
     }

@@ -20,7 +20,7 @@ const createUser = async (payload) => {
     `
     INSERT INTO users (fullname, email, password)
     VALUES ($1, $2, $3)
-    RETURNING id, fullname, email, password, created_at, updated_at
+    RETURNING id, fullname, email, created_at, updated_at
     `,
     [
       payload.fullname.trim(),

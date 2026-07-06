@@ -54,7 +54,8 @@ const updateTransactionSchema = z
       .string({ invalid_type_error: "Description must be a string" })
       .min(1, "Description can not be empty")
       .max(1000, "Description must be less than 1000 characters")
-      .optional(),
+      .optional()
+      .nullable(),
 
     type: z
       .enum(["INCOME", "EXPENSE"], {

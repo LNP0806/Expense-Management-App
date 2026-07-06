@@ -5,9 +5,10 @@ import { Plus, MagnifyingGlass, Trash, Pencil, ArrowsLeftRight, Tag } from '@pho
 import { transactionsApi } from '../api/transactions.api';
 import { categoriesApi } from '../api/categories.api';
 import { useToast } from '../context/ToastContext';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatCurrency, formatDate, getTodayDate } from '../utils/formatters';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import Select from '../components/common/Select';
 import Modal from '../components/common/Modal';
 import EmptyState from '../components/common/EmptyState';
 
@@ -33,6 +34,19 @@ export default function TransactionsPage() {
   const [selectedTx, setSelectedTx] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Edit Modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    amount: '',
+    type: 'EXPENSE',
+    categoryId: '',
+    date: '',
+    description: '',
+  });
+  const [editErrors, setEditErrors] = useState({});
+  const [updating, setUpdating] = useState(false);
   
   // Debounce search input
   useEffect(() => {
@@ -147,6 +161,86 @@ export default function TransactionsPage() {
       addToast('Lỗi khi xóa giao dịch', 'error');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleOpenEdit = () => {
+    if (!selectedTx) return;
+    
+    // Convert UTC date from API to local YYYY-MM-DD format to prevent timezone offset shifts
+    const toLocalYYYYMMDD = (dateStr) => {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    setEditFormData({
+      title: selectedTx.title || '',
+      amount: selectedTx.amount ? String(selectedTx.amount) : '',
+      type: selectedTx.type || 'EXPENSE',
+      categoryId: selectedTx.category_id || '',
+      date: toLocalYYYYMMDD(selectedTx.transaction_date) || getTodayDate(),
+      description: selectedTx.description || '',
+    });
+    setEditErrors({});
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateTx = async (e) => {
+    e.preventDefault();
+    
+    // Validate edit form
+    const newErrors = {};
+    if (!editFormData.title.trim()) {
+      newErrors.title = 'Vui lòng nhập tiêu đề';
+    }
+    if (!editFormData.amount || Number(editFormData.amount) <= 0) {
+      newErrors.amount = 'Vui lòng nhập số tiền hợp lệ';
+    }
+    if (!editFormData.date) {
+      newErrors.date = 'Vui lòng chọn ngày giao dịch';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setEditErrors(newErrors);
+      return;
+    }
+    
+    setUpdating(true);
+    try {
+      const payload = {
+        title: editFormData.title.trim(),
+        amount: Number(editFormData.amount),
+        type: editFormData.type,
+        transaction_date: editFormData.date,
+        description: editFormData.description.trim() || null,
+      };
+      
+      if (editFormData.categoryId) {
+        payload.category_id = editFormData.categoryId;
+      }
+      
+      const res = await transactionsApi.update(selectedTx.id, payload);
+      if (res.data.success) {
+        const rawTx = res.data.data;
+        const updated = rawTx?.updatedTransaction || rawTx?.updated_transaction || rawTx;
+        addToast('Cập nhật giao dịch thành công', 'success');
+        
+        // Update local state
+        setTransactions(prev => prev.map(t => t.id === selectedTx.id ? { ...t, ...updated } : t));
+        setSelectedTx(null);
+        setIsEditModalOpen(false);
+      }
+    } catch (err) {
+      console.error('Error updating transaction:', err);
+      const msg = err?.response?.data?.message || err?.message || 'Lỗi khi cập nhật giao dịch';
+      addToast(msg, 'error');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -306,9 +400,7 @@ export default function TransactionsPage() {
             <Button
               variant="secondary"
               icon={<Pencil size={18} />}
-              onClick={() => {
-                addToast('Tính năng chỉnh sửa sẽ được cập nhật sau', 'info');
-              }}
+              onClick={handleOpenEdit}
             >
               Chỉnh sửa
             </Button>
@@ -400,6 +492,102 @@ export default function TransactionsPage() {
         <p className="text-sm text-text-secondary text-left">
           Bạn có chắc chắn muốn xóa giao dịch này không? Hành động này không thể hoàn tác.
         </p>
+      </Modal>
+
+      {/* Edit Transaction Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Chỉnh sửa giao dịch"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              loading={updating}
+              onClick={handleUpdateTx}
+            >
+              Lưu thay đổi
+            </Button>
+          </>
+        }
+      >
+        <form className="flex flex-col gap-4 text-left font-sans" onSubmit={handleUpdateTx}>
+          {/* Type Toggle */}
+          <div className="flex bg-secondary-dark p-1 rounded-xl border border-border-dark self-center mb-2">
+            <button
+              type="button"
+              className={`px-6 py-2 text-sm font-semibold rounded-lg cursor-pointer transition-all duration-150 ${
+                editFormData.type === 'EXPENSE'
+                  ? 'bg-expense text-white'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+              onClick={() => setEditFormData(prev => ({ ...prev, type: 'EXPENSE' }))}
+            >
+              Chi tiêu
+            </button>
+            <button
+              type="button"
+              className={`px-6 py-2 text-sm font-semibold rounded-lg cursor-pointer transition-all duration-150 ${
+                editFormData.type === 'INCOME'
+                  ? 'bg-income text-white'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+              onClick={() => setEditFormData(prev => ({ ...prev, type: 'INCOME' }))}
+            >
+              Thu nhập
+            </button>
+          </div>
+
+          <Input
+            id="edit-title"
+            label="Tiêu đề"
+            value={editFormData.title}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+            error={editErrors.title}
+          />
+
+          <Input
+            id="edit-amount"
+            label="Số tiền"
+            type="number"
+            value={editFormData.amount}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, amount: e.target.value }))}
+            error={editErrors.amount}
+          />
+
+          <Select
+            id="edit-category"
+            label="Danh mục"
+            value={editFormData.categoryId}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, categoryId: e.target.value }))}
+            options={Object.values(categories).map(c => ({ value: c.id, label: c.name }))}
+            placeholder="Chưa phân loại"
+          />
+
+          <Input
+            id="edit-date"
+            label="Ngày giao dịch"
+            type="date"
+            value={editFormData.date}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, date: e.target.value }))}
+            error={editErrors.date}
+          />
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider" htmlFor="edit-desc">
+              Ghi chú / Mô tả
+            </label>
+            <textarea
+              id="edit-desc"
+              className="w-full bg-secondary-dark border border-border-dark text-text-primary font-sans text-sm px-4 py-2.5 rounded-xl transition-all duration-150 focus:outline-hidden focus:border-accent-green focus:bg-tertiary-dark focus:ring-1 focus:ring-accent-green resize-y min-h-[80px]"
+              value={editFormData.description}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+            />
+          </div>
+        </form>
       </Modal>
     </div>
   );

@@ -104,7 +104,7 @@ export default function CategoriesPage() {
         if (res.data.success) {
           addToast('Cập nhật danh mục thành công!', 'success');
           const rawCat = res.data.data;
-          const categoryObj = rawCat?.updated_category || rawCat;
+          const categoryObj = rawCat?.updatedCategory || rawCat?.updated_category || rawCat;
           setCategories(prev => prev.map(c => c.id === editingCategory.id ? categoryObj : c));
         }
       } else {
@@ -113,7 +113,7 @@ export default function CategoriesPage() {
         if (res.data.success) {
           addToast('Thêm danh mục thành công!', 'success');
           const rawCat = res.data.data;
-          const categoryObj = rawCat?.new_category || rawCat;
+          const categoryObj = rawCat?.newCategory || rawCat?.new_category || rawCat;
           setCategories(prev => [...prev, categoryObj]);
         }
       }

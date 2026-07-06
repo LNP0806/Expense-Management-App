@@ -1,11 +1,6 @@
 -- ============================================================
--- DỌN DẸP HỆ THỐNG (Dùng khi cần reset database ở Local)
+-- KHỞI TẠO HỆ THỐNG CƠ SỞ DỮ LIỆU BAN ĐẦU
 -- ============================================================
-DROP TABLE IF EXISTS budgets CASCADE;
-DROP TABLE IF EXISTS transactions CASCADE;
-DROP TABLE IF EXISTS categories CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-DROP FUNCTION IF EXISTS update_modified_column CASCADE;
 
 -- Kích hoạt extension sinh UUID nếu cần dùng uuid_generate_v4()
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

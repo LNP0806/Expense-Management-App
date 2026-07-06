@@ -1,13 +1,15 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Trash, Wallet } from '@phosphor-icons/react';
+import { Plus, Calendar, Trash, Wallet, Pencil } from '@phosphor-icons/react';
 import { budgetsApi } from '../api/budgets.api';
 import { categoriesApi } from '../api/categories.api';
 import { useToast } from '../context/ToastContext';
 import { formatCurrency, formatDate, formatPercent } from '../utils/formatters';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
+import Input from '../components/common/Input';
+import Select from '../components/common/Select';
 import Modal from '../components/common/Modal';
 import EmptyState from '../components/common/EmptyState';
 
@@ -23,6 +25,19 @@ export default function BudgetsPage() {
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Edit Budget States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    amount: '',
+    categoryId: '',
+    startDate: '',
+    endDate: '',
+    description: '',
+  });
+  const [editErrors, setEditErrors] = useState({});
+  const [updating, setUpdating] = useState(false);
 
   // Fetch categories to map ID -> Name
   useEffect(() => {
@@ -124,6 +139,89 @@ export default function BudgetsPage() {
       addToast('Lỗi khi xóa ngân sách', 'error');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleOpenEdit = () => {
+    if (!selectedBudget) return;
+    
+    // Convert UTC date from API to local YYYY-MM-DD format to prevent timezone offset shifts
+    const toLocalYYYYMMDD = (dateStr) => {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    setEditFormData({
+      title: selectedBudget.title || '',
+      amount: selectedBudget.amount ? String(selectedBudget.amount) : '',
+      categoryId: selectedBudget.category_id || '',
+      startDate: toLocalYYYYMMDD(selectedBudget.start_date),
+      endDate: toLocalYYYYMMDD(selectedBudget.end_date),
+      description: selectedBudget.description || '',
+    });
+    setEditErrors({});
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateBudget = async (e) => {
+    e.preventDefault();
+
+    // Validate
+    const newErrors = {};
+    if (!editFormData.title.trim()) {
+      newErrors.title = 'Vui lòng nhập tên ngân sách';
+    }
+    if (!editFormData.amount || Number(editFormData.amount) <= 0) {
+      newErrors.amount = 'Vui lòng nhập số tiền hợp lệ';
+    }
+    if (!editFormData.startDate) {
+      newErrors.startDate = 'Vui lòng chọn ngày bắt đầu';
+    }
+    if (!editFormData.endDate) {
+      newErrors.endDate = 'Vui lòng chọn ngày kết thúc';
+    } else if (new Date(editFormData.startDate) > new Date(editFormData.endDate)) {
+      newErrors.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setEditErrors(newErrors);
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const payload = {
+        title: editFormData.title.trim(),
+        amount: Number(editFormData.amount),
+        start_date: editFormData.startDate,
+        end_date: editFormData.endDate,
+        description: editFormData.description.trim() || null,
+      };
+
+      if (editFormData.categoryId) {
+        payload.category_id = editFormData.categoryId;
+      } else {
+        payload.category_id = null;
+      }
+
+      const res = await budgetsApi.update(selectedBudget.id, payload);
+      if (res.data.success) {
+        addToast('Cập nhật ngân sách thành công', 'success');
+        setIsEditModalOpen(false);
+        setSelectedBudget(null);
+        fetchBudgets();
+      }
+    } catch (err) {
+      console.error('Error updating budget:', err);
+      const msg = err?.response?.data?.message || err?.message || 'Lỗi khi cập nhật ngân sách';
+      addToast(msg, 'error');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -276,10 +374,14 @@ export default function BudgetsPage() {
               icon={<Trash size={18} />}
               onClick={() => setIsDeleteModalOpen(true)}
             >
-              Xóa ngân sách
+              Xóa
             </Button>
-            <Button variant="ghost" onClick={() => setSelectedBudget(null)}>
-              Đóng
+            <Button
+              variant="secondary"
+              icon={<Pencil size={18} />}
+              onClick={handleOpenEdit}
+            >
+              Chỉnh sửa
             </Button>
           </>
         }
@@ -376,6 +478,85 @@ export default function BudgetsPage() {
         <p className="text-sm text-text-secondary text-left">
           Bạn có chắc chắn muốn xóa ngân sách "{selectedBudget?.title}" này không?
         </p>
+      </Modal>
+
+      {/* Edit Budget Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Chỉnh sửa ngân sách"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              loading={updating}
+              onClick={handleUpdateBudget}
+            >
+              Lưu thay đổi
+            </Button>
+          </>
+        }
+      >
+        <form className="flex flex-col gap-4 text-left font-sans" onSubmit={handleUpdateBudget}>
+          <Input
+            id="edit-budget-title"
+            label="Tên ngân sách"
+            value={editFormData.title}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+            error={editErrors.title}
+          />
+
+          <Input
+            id="edit-budget-amount"
+            label="Số tiền hạn mức"
+            type="number"
+            value={editFormData.amount}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, amount: e.target.value }))}
+            error={editErrors.amount}
+          />
+
+          <Select
+            id="edit-budget-category"
+            label="Danh mục áp dụng"
+            value={editFormData.categoryId}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, categoryId: e.target.value }))}
+            options={Object.values(categories).map(c => ({ value: c.id, label: c.name }))}
+            placeholder="Tất cả danh mục"
+          />
+
+          <Input
+            id="edit-budget-start"
+            label="Ngày bắt đầu"
+            type="date"
+            value={editFormData.startDate}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, startDate: e.target.value }))}
+            error={editErrors.startDate}
+          />
+
+          <Input
+            id="edit-budget-end"
+            label="Ngày kết thúc"
+            type="date"
+            value={editFormData.endDate}
+            onChange={(e) => setEditFormData(prev => ({ ...prev, endDate: e.target.value }))}
+            error={editErrors.endDate}
+          />
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider" htmlFor="edit-budget-desc">
+              Mô tả
+            </label>
+            <textarea
+              id="edit-budget-desc"
+              className="w-full bg-secondary-dark border border-border-dark text-text-primary font-sans text-sm px-4 py-2.5 rounded-xl transition-all duration-150 focus:outline-hidden focus:border-accent-green focus:bg-tertiary-dark focus:ring-1 focus:ring-accent-green resize-y min-h-[80px]"
+              value={editFormData.description}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+            />
+          </div>
+        </form>
       </Modal>
     </div>
   );

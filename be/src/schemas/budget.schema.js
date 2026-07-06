@@ -62,7 +62,7 @@ const updateBudgetSchema = z
       .min(1, "Amount must be greater than 0")
       .optional(),
 
-    category_id: z.string().uuid("Invalid category id format").optional(),
+    category_id: z.string().uuid("Invalid category id format").optional().nullable(),
 
     start_date: z.string().date("Invalid date format (YYYY-MM-DD)").optional(),
 

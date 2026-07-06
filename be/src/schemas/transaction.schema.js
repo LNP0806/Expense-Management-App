@@ -70,12 +70,13 @@ const updateTransactionSchema = z
       .min(1, "Amount must be greater than 0")
       .optional(),
 
-    category_id: z.string().uuid("Invalid category id format").optional(),
+    category_id: z.string().uuid("Invalid category id format").optional().nullable(),
 
     transaction_date: z
       .string()
       .date("Invalid date format (YYYY-MM-DD)")
-      .optional(),
+      .optional()
+      .nullable(),
   })
   .refine(
     (data) =>

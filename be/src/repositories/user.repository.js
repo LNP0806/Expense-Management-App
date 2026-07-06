@@ -35,7 +35,7 @@ const createUser = async (payload) => {
 const updateRefreshToken = async (user_id, refreshToken) => {
   await pool.query("UPDATE users SET refresh_token = $1 WHERE id = $2", [
     refreshToken,
-    user.id,
+    user_id,
   ]);
 };
 

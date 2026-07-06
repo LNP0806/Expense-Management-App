@@ -403,6 +403,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   keyboardContainer: {
+    flex: 1,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',

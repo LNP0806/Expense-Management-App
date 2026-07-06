@@ -14,6 +14,12 @@ const toLocalDateString = (dateInput: string | Date) => {
   return `${year}-${month}-${day}`;
 };
 
+const formatAmountInput = (text: string) => {
+  const cleanNumber = text.replace(/[^0-9]/g, '');
+  if (!cleanNumber) return '';
+  return new Intl.NumberFormat('vi-VN').format(Number(cleanNumber));
+};
+
 const { width } = Dimensions.get('window');
 
 export default function BudgetsScreen() {
@@ -168,7 +174,7 @@ export default function BudgetsScreen() {
     setEditingId(b.id);
     setForm({
       title: b.title || '',
-      amount: b.amount ? String(b.amount) : '',
+      amount: b.amount ? formatAmountInput(String(Math.round(Number(b.amount)))) : '',
       categoryId: b.category_id || '',
       startDate: b.start_date ? toLocalDateString(b.start_date) : toLocalDateString(new Date()),
       endDate: b.end_date ? toLocalDateString(b.end_date) : toLocalDateString(new Date()),
@@ -199,7 +205,9 @@ export default function BudgetsScreen() {
       showToast('Vui lòng nhập tên ngân sách', 'error');
       return;
     }
-    if (!form.amount || Number(form.amount) <= 0) {
+    
+    const rawAmount = Number(form.amount.replace(/[^0-9]/g, ''));
+    if (!form.amount || rawAmount <= 0) {
       showToast('Vui lòng nhập số tiền hợp lệ', 'error');
       return;
     }
@@ -216,7 +224,7 @@ export default function BudgetsScreen() {
     try {
       const payload = {
         title: form.title.trim(),
-        amount: Number(form.amount),
+        amount: rawAmount,
         start_date: form.startDate,
         end_date: form.endDate,
         description: form.description.trim() || null,
@@ -495,15 +503,18 @@ export default function BudgetsScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Số tiền hạn mức (VND)</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Nhập số tiền..."
-                    placeholderTextColor="#6b7280"
-                    keyboardType="numeric"
-                    value={form.amount}
-                    onChangeText={(val) => setForm((prev) => ({ ...prev, amount: val }))}
-                  />
+                  <Text style={styles.label}>Số tiền hạn mức</Text>
+                  <View style={styles.amountInputContainer}>
+                    <TextInput
+                      style={[styles.input, { flex: 1, paddingRight: 40 }]}
+                      placeholder="Nhập số tiền..."
+                      placeholderTextColor="#6b7280"
+                      keyboardType="numeric"
+                      value={form.amount}
+                      onChangeText={(val) => setForm((prev) => ({ ...prev, amount: formatAmountInput(val) }))}
+                    />
+                    <Text style={styles.amountSuffix}>đ</Text>
+                  </View>
                 </View>
 
                 <View style={styles.inputGroup}>
@@ -707,9 +718,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   keyboardContainer: {
+    flex: 1,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  amountInputContainer: {
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  amountSuffix: {
+    position: 'absolute',
+    right: 16,
+    color: '#9ca3af',
+    fontSize: 15,
+    fontWeight: '600',
   },
   bottomSheet: {
     backgroundColor: '#1a1d27',

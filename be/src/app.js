@@ -45,6 +45,14 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Backend server is running..."
+  }
+  )
+})
+
 app.use("/auth", authRoutes);
 
 app.use("/categories", categoryRoutes);

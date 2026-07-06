@@ -78,7 +78,7 @@
 
 ---
 
-## 4. Budget Progress/Spending Data []
+## 4. Budget Progress/Spending Data [x]
 
 - **Feature**: Budget cards showing actual spent amount vs budget.
 - **Why Required**: Users need to see how much they've spent against each budget.

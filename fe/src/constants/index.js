@@ -1,4 +1,5 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+/* global process */
+export const API_BASE_URL = process.env.NODE_ENV === 'production' ? (process.env.VITE_API_URL || '/api') : '/api';
 
 export const TRANSACTION_TYPES = {
   INCOME: 'INCOME',

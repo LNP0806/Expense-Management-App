@@ -63,8 +63,8 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       await register(formData.fullname, formData.email, formData.password);
-      addToast('Đăng ký thành công!', 'success');
-      navigate('/dashboard', { replace: true });
+      addToast('Đăng ký thành công! Hãy đăng nhập.', 'success');
+      navigate('/login', { replace: true });
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || 'Đăng ký thất bại';

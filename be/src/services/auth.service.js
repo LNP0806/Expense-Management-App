@@ -57,7 +57,7 @@ const register = async (payload) => {
   const token = generateToken(newUser);
 
   return {
-    user,
+    newUser,
     token,
   }
 }

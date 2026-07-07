@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, ActivityIndicator, Dimensions, DeviceEventEmitter } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { transactionsApi } from '../../api/transactions';
 import { TrendUp, TrendDown, Scales, PiggyBank, SignOut } from 'phosphor-react-native';
@@ -73,6 +73,14 @@ export default function DashboardScreen() {
       fetchDashboardData();
     }, [fetchDashboardData])
   );
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('sync-completed', () => {
+      console.log('Sync complete event received in Dashboard, reloading...');
+      fetchDashboardData();
+    });
+    return () => sub.remove();
+  }, [fetchDashboardData]);
 
   const onRefresh = () => {
     setRefreshing(true);

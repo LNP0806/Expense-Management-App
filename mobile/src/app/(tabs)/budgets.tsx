@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, Dimensions, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, Dimensions, TouchableWithoutFeedback, Keyboard, DeviceEventEmitter } from 'react-native';
 import { budgetsApi } from '../../api/budgets';
 import { categoriesApi } from '../../api/categories';
 import { Plus, Trash, Pencil, Calendar, Tag, FileText, Wallet, CheckCircle } from 'phosphor-react-native';
@@ -136,6 +136,15 @@ export default function BudgetsScreen() {
       loadBudgets();
     }, [loadBudgets])
   );
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('sync-completed', () => {
+      console.log('Sync complete event received in Budgets, reloading...');
+      loadCategories();
+      loadBudgets();
+    });
+    return () => sub.remove();
+  }, [loadBudgets]);
 
   const onRefresh = () => {
     setRefreshing(true);

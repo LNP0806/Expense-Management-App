@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, DeviceEventEmitter } from 'react-native';
 import { categoriesApi } from '../../api/categories';
 import { Plus, Trash, Pencil, Tag, FileText, CheckCircle } from 'phosphor-react-native';
 
@@ -55,6 +55,14 @@ export default function CategoriesScreen() {
       loadCategories();
     }, [loadCategories])
   );
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('sync-completed', () => {
+      console.log('Sync complete event received in Categories, reloading...');
+      loadCategories();
+    });
+    return () => sub.remove();
+  }, [loadCategories]);
 
   const onRefresh = () => {
     setRefreshing(true);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, Image, DeviceEventEmitter } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { transactionsApi } from '../../api/transactions';
 import { categoriesApi } from '../../api/categories';
@@ -104,6 +104,15 @@ export default function TransactionsScreen() {
       loadTransactions();
     }, [loadTransactions])
   );
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('sync-completed', () => {
+      console.log('Sync complete event received in Transactions, reloading...');
+      loadCategories();
+      loadTransactions();
+    });
+    return () => sub.remove();
+  }, [loadTransactions]);
 
   const onRefresh = () => {
     setRefreshing(true);

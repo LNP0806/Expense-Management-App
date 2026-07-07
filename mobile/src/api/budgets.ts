@@ -240,8 +240,8 @@ export const budgetsApi: any = {
       FROM local_budgets b
       LEFT JOIN local_transactions t ON 
         (b.category_id IS NULL OR t.category_id = b.category_id)
-        AND t.transaction_date >= b.start_date
-        AND t.transaction_date <= b.end_date
+        AND date(t.transaction_date) >= date(b.start_date)
+        AND date(t.transaction_date) <= date(b.end_date)
         AND t.type = 'EXPENSE'
         AND t.deleted_at IS NULL
       WHERE b.deleted_at IS NULL

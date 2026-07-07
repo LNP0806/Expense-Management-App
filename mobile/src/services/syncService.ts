@@ -213,6 +213,14 @@ export const syncAll = async (): Promise<boolean> => {
     await pullServerChanges();
     
     isSyncing = false;
+
+    try {
+      const { DeviceEventEmitter } = require('react-native');
+      DeviceEventEmitter.emit('sync-completed', { success: true });
+    } catch (e) {
+      console.warn('Failed to emit sync-completed event:', e);
+    }
+
     return true;
   } catch (error: any) {
     console.error('Offline Sync Cycle failed:', error.message);

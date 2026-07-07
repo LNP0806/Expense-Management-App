@@ -366,6 +366,7 @@ export default function BudgetsScreen() {
         visible={isDetailModalOpen}
         animationType="slide"
         transparent={true}
+        statusBarTranslucent={true}
         onRequestClose={() => setIsDetailModalOpen(false)}
       >
         <View style={styles.modalOverlay}>
@@ -465,6 +466,7 @@ export default function BudgetsScreen() {
         visible={isCreateModalOpen || isEditModalOpen}
         animationType="slide"
         transparent={true}
+        statusBarTranslucent={true}
         onRequestClose={() => {
           setIsCreateModalOpen(false);
           setIsEditModalOpen(false);

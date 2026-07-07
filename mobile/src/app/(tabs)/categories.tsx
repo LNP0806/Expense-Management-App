@@ -217,6 +217,7 @@ export default function CategoriesScreen() {
         visible={isCreateModalOpen || isEditModalOpen}
         animationType="slide"
         transparent={true}
+        statusBarTranslucent={true}
         onRequestClose={() => {
           setIsCreateModalOpen(false);
           setIsEditModalOpen(false);

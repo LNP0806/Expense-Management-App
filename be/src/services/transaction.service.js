@@ -87,7 +87,7 @@ const updateTransaction = async (user_id, id, payload) => {
     throw new AppError("Transaction is not belong to user", 401);
   }
 
-  const { title, description, type, category_id, amount, transaction_date } =
+  const { title, description, type, category_id, amount, transaction_date, image_url } =
     payload;
 
   if (category_id) {
@@ -98,14 +98,20 @@ const updateTransaction = async (user_id, id, payload) => {
     }
   }
 
-  const updatedTransaction = await transactionRepo.updateTransaction(id, {
+  const payloadToUpdate = {
     title,
     description,
     type,
     category_id,
     amount,
     transaction_date,
-  });
+  };
+
+  if (payload.hasOwnProperty('image_url')) {
+    payloadToUpdate.image_url = image_url;
+  }
+
+  const updatedTransaction = await transactionRepo.updateTransaction(id, payloadToUpdate);
 
   return {
     updatedTransaction,

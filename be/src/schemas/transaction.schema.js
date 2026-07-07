@@ -63,7 +63,7 @@ const updateTransactionSchema = z
       })
       .optional(),
 
-    amount: z
+    amount: z.coerce
       .number({
         invalid_type_error: "Amount must be a number",
       })
@@ -77,6 +77,12 @@ const updateTransactionSchema = z
       .date("Invalid date format (YYYY-MM-DD)")
       .optional()
       .nullable(),
+
+    image_url: z
+      .string({ invalid_type_error: "Image URL must be a string" })
+      .url("Invalid image URL format")
+      .optional()
+      .nullable(),
   })
   .refine(
     (data) =>
@@ -85,7 +91,8 @@ const updateTransactionSchema = z
       data.type !== undefined ||
       data.amount !== undefined ||
       data.category_id !== undefined ||
-      data.transaction_date !== undefined,
+      data.transaction_date !== undefined ||
+      data.image_url !== undefined,
     {
       message: "At least one field is required",
     },

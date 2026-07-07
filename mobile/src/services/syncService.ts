@@ -1,0 +1,222 @@
+import * as SecureStore from 'expo-secure-store';
+import NetInfo from '@react-native-community/netinfo';
+import apiClient from '../api/client';
+import { getDb } from '../database/sqlite';
+
+const LAST_SYNCED_KEY = 'lastSyncedAt';
+
+export const getLocalLastSyncedAt = async (): Promise<string> => {
+  const time = await SecureStore.getItemAsync(LAST_SYNCED_KEY);
+  return time || new Date(0).toISOString();
+};
+
+export const setLocalLastSyncedAt = async (time: string): Promise<void> => {
+  await SecureStore.setItemAsync(LAST_SYNCED_KEY, time);
+};
+
+export const clearLocalLastSyncedAt = async (): Promise<void> => {
+  await SecureStore.deleteItemAsync(LAST_SYNCED_KEY);
+};
+
+// 1. PUSH local changes from outbox to backend
+export const pushLocalChanges = async (): Promise<void> => {
+  const db = await getDb();
+  
+  // Fetch pending actions in order
+  const pendingActions = await db.getAllAsync<any>(
+    'SELECT * FROM sync_outbox ORDER BY created_at ASC'
+  );
+
+  if (pendingActions.length === 0) return;
+
+  console.log(`Pushing ${pendingActions.length} local changes to backend...`);
+
+  for (const action of pendingActions) {
+    const payload = JSON.parse(action.payload);
+    const { table_name, record_id, action: verb } = action;
+
+    try {
+      if (table_name === 'categories') {
+        if (verb === 'INSERT') {
+          // Categories create: POST /categories
+          await apiClient.post('/categories', { id: record_id, ...payload });
+        } else if (verb === 'UPDATE') {
+          // Categories update: PATCH /categories/:id
+          await apiClient.patch(`/categories/${record_id}`, payload);
+        } else if (verb === 'DELETE') {
+          // Categories delete: DELETE /categories/:id
+          await apiClient.delete(`/categories/${record_id}`);
+        }
+      } else if (table_name === 'transactions') {
+        if (verb === 'INSERT') {
+          // If transaction has an offline image cache path, we should handle it
+          // Otherwise, send as standard JSON (supported by express.json() parser on BE)
+          await apiClient.post('/transactions', { id: record_id, ...payload });
+        } else if (verb === 'UPDATE') {
+          await apiClient.patch(`/transactions/${record_id}`, payload);
+        } else if (verb === 'DELETE') {
+          await apiClient.delete(`/transactions/${record_id}`);
+        }
+      } else if (table_name === 'budgets') {
+        if (verb === 'INSERT') {
+          await apiClient.post('/budgets', { id: record_id, ...payload });
+        } else if (verb === 'UPDATE') {
+          await apiClient.patch(`/budgets/${record_id}`, payload);
+        } else if (verb === 'DELETE') {
+          await apiClient.delete(`/budgets/${record_id}`);
+        }
+      }
+
+      // If API succeeded, update local sync_status and remove from outbox
+      if (verb !== 'DELETE') {
+        const localTable = `local_${table_name}`;
+        await db.runAsync(
+          `UPDATE ${localTable} SET _sync_status = 'synced', _last_synced_at = ? WHERE id = ?`,
+          [new Date().toISOString(), record_id]
+        );
+      } else {
+        // For local deleted items, make sure we clean them from SQLite completely
+        const localTable = `local_${table_name}`;
+        await db.runAsync(`DELETE FROM ${localTable} WHERE id = ?`, [record_id]);
+      }
+
+      // Remove the resolved outbox item
+      await db.runAsync('DELETE FROM sync_outbox WHERE id = ?', [action.id]);
+
+    } catch (error: any) {
+      console.error(`Failed to sync action ID ${action.id} for table ${table_name}:`, error.message);
+      // If server returned 404/400 (bad request/invalid record), it might be unresolvable
+      // We skip it to prevent locking the queue, but for network errors (502/503/timeout), we break to retry later.
+      if (error.response && error.response.status >= 500) {
+        break; // Retry later on network recovery
+      } else if (!error.response) {
+        break; // Network disconnect, retry later
+      } else {
+        // Skip bad payloads/already deleted records
+        await db.runAsync('DELETE FROM sync_outbox WHERE id = ?', [action.id]);
+      }
+    }
+  }
+};
+
+// 2. PULL updates from backend since lastSyncedAt
+export const pullServerChanges = async (): Promise<void> => {
+  const db = await getDb();
+  const lastSyncedAt = await getLocalLastSyncedAt();
+
+  console.log(`Pulling server updates since: ${lastSyncedAt}`);
+  
+  const res = await apiClient.get('/sync', { params: { lastSyncedAt } });
+  
+  if (!res.data.success) {
+    throw new Error('Sync API pull returned failure');
+  }
+
+  const { categories, transactions, budgets, serverTime } = res.data.data;
+
+  // Process categories
+  for (const cat of categories) {
+    if (cat.deleted_at) {
+      await db.runAsync('DELETE FROM local_categories WHERE id = ?', [cat.id]);
+    } else {
+      const existing = await db.getFirstAsync<any>(
+        'SELECT * FROM local_categories WHERE id = ?',
+        [cat.id]
+      );
+      if (!existing) {
+        await db.runAsync(
+          'INSERT OR IGNORE INTO local_categories (id, name, description, user_id, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [cat.id, cat.name, cat.description || null, cat.user_id || null, cat.created_at, cat.updated_at, 'synced']
+        );
+      } else if (new Date(cat.updated_at) > new Date(existing.updated_at)) {
+        await db.runAsync(
+          'UPDATE local_categories SET name = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
+          [cat.name, cat.description || null, cat.updated_at, 'synced', cat.id]
+        );
+      }
+    }
+  }
+
+  // Process transactions
+  for (const tx of transactions) {
+    if (tx.deleted_at) {
+      await db.runAsync('DELETE FROM local_transactions WHERE id = ?', [tx.id]);
+    } else {
+      const existing = await db.getFirstAsync<any>(
+        'SELECT * FROM local_transactions WHERE id = ?',
+        [tx.id]
+      );
+      if (!existing) {
+        await db.runAsync(
+          'INSERT OR IGNORE INTO local_transactions (id, category_id, title, amount, type, image_url, transaction_date, description, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [tx.id, tx.category_id || null, tx.title, Number(tx.amount), tx.type, tx.image_url || null, tx.transaction_date, tx.description || null, tx.created_at, tx.updated_at, 'synced']
+        );
+      } else if (new Date(tx.updated_at) > new Date(existing.updated_at)) {
+        await db.runAsync(
+          'UPDATE local_transactions SET category_id = ?, title = ?, amount = ?, type = ?, image_url = ?, transaction_date = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
+          [tx.category_id || null, tx.title, Number(tx.amount), tx.type, tx.image_url || null, tx.transaction_date, tx.description || null, tx.updated_at, 'synced', tx.id]
+        );
+      }
+    }
+  }
+
+  // Process budgets
+  for (const b of budgets) {
+    if (b.deleted_at) {
+      await db.runAsync('DELETE FROM local_budgets WHERE id = ?', [b.id]);
+    } else {
+      const existing = await db.getFirstAsync<any>(
+        'SELECT * FROM local_budgets WHERE id = ?',
+        [b.id]
+      );
+      if (!existing) {
+        await db.runAsync(
+          'INSERT OR IGNORE INTO local_budgets (id, category_id, title, amount, start_date, end_date, description, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [b.id, b.category_id || null, b.title, Number(b.amount), b.start_date, b.end_date, b.description || null, b.created_at, b.updated_at, 'synced']
+        );
+      } else if (new Date(b.updated_at) > new Date(existing.updated_at)) {
+        await db.runAsync(
+          'UPDATE local_budgets SET category_id = ?, title = ?, amount = ?, start_date = ?, end_date = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
+          [b.category_id || null, b.title, Number(b.amount), b.start_date, b.end_date, b.description || null, b.updated_at, 'synced', b.id]
+        );
+      }
+    }
+  }
+
+  // Set the new synced timestamp
+  await setLocalLastSyncedAt(serverTime);
+  console.log(`Sync Pull complete. Local state updated to: ${serverTime}`);
+};
+
+let isSyncing = false;
+
+// 3. Coordinate PUSH & PULL inside single Sync Cycle
+export const syncAll = async (): Promise<boolean> => {
+  if (isSyncing) {
+    console.log('Sync already in progress, skipping concurrent call...');
+    return false;
+  }
+  isSyncing = true;
+
+  try {
+    const netState = await NetInfo.fetch();
+    
+    if (!netState.isConnected) {
+      console.log('Sync cancelled: Device is offline');
+      isSyncing = false;
+      return false;
+    }
+
+    // A. Push local offline edits
+    await pushLocalChanges();
+    // B. Pull remote server edits
+    await pullServerChanges();
+    
+    isSyncing = false;
+    return true;
+  } catch (error: any) {
+    console.error('Offline Sync Cycle failed:', error.message);
+    isSyncing = false;
+    return false;
+  }
+};

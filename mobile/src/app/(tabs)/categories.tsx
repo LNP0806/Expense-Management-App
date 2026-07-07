@@ -224,70 +224,72 @@ export default function CategoriesScreen() {
         }}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1 }}
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.bottomSheet}>
-                <View style={styles.bottomSheetHeader}>
-                  <Text style={styles.modalTitle}>
-                    {isEditModalOpen ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setIsCreateModalOpen(false);
-                      setIsEditModalOpen(false);
-                    }}
-                  >
-                    <Text style={styles.closeText}>Hủy</Text>
-                  </TouchableOpacity>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={StyleSheet.absoluteFillObject} />
+            </TouchableWithoutFeedback>
+
+            <View style={styles.bottomSheet}>
+              <View style={styles.bottomSheetHeader}>
+                <Text style={styles.modalTitle}>
+                  {isEditModalOpen ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsCreateModalOpen(false);
+                    setIsEditModalOpen(false);
+                  }}
+                >
+                  <Text style={styles.closeText}>Hủy</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView 
+                style={styles.modalScroll} 
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ flexGrow: 1 }}
+              >
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Tên danh mục</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="VD: Mua sắm, Làm thêm..."
+                    placeholderTextColor="#6b7280"
+                    value={form.name}
+                    onChangeText={(val) => setForm((prev) => ({ ...prev, name: val }))}
+                  />
                 </View>
 
-                <ScrollView 
-                  style={styles.modalScroll} 
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{ flexGrow: 1 }}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Mô tả</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    placeholder="Mô tả danh mục chi tiêu này..."
+                    placeholderTextColor="#6b7280"
+                    multiline
+                    numberOfLines={3}
+                    value={form.description}
+                    onChangeText={(val) => setForm((prev) => ({ ...prev, description: val }))}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.saveBtn}
+                  onPress={() => handleSaveCategory(isEditModalOpen)}
+                  disabled={submitting}
                 >
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Tên danh mục</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="VD: Mua sắm, Làm thêm..."
-                      placeholderTextColor="#6b7280"
-                      value={form.name}
-                      onChangeText={(val) => setForm((prev) => ({ ...prev, name: val }))}
-                    />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Mô tả</Text>
-                    <TextInput
-                      style={[styles.input, styles.textArea]}
-                      placeholder="Mô tả danh mục chi tiêu này..."
-                      placeholderTextColor="#6b7280"
-                      multiline
-                      numberOfLines={3}
-                      value={form.description}
-                      onChangeText={(val) => setForm((prev) => ({ ...prev, description: val }))}
-                    />
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.saveBtn}
-                    onPress={() => handleSaveCategory(isEditModalOpen)}
-                    disabled={submitting}
-                  >
-                    {submitting ? (
-                      <ActivityIndicator color="#ffffff" />
-                    ) : (
-                      <Text style={styles.saveBtnText}>Lưu danh mục</Text>
-                    )}
-                  </TouchableOpacity>
-                </ScrollView>
-              </View>
+                  {submitting ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text style={styles.saveBtnText}>Lưu danh mục</Text>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
             </View>
-          </TouchableWithoutFeedback>
+          </View>
         </KeyboardAvoidingView>
       </Modal>
     </View>

@@ -61,20 +61,29 @@ const createTransaction = async (req, res, next) => {
 
 const updateTransaction = async (req, res, next) => {
   const user_id = req.user.id;
-
   const id = req.params.id;
 
-  const { title, description, type, category_id, amount, transaction_date } =
+  const { title, description, type, category_id, amount, transaction_date, image_url } =
     req.validateBody;
 
-  const result = await transactionService.updateTransaction(user_id, id, {
+  const payload = {
     title,
     description,
     type,
     category_id,
     amount,
     transaction_date,
-  });
+  };
+
+  if (req.body.hasOwnProperty('image_url')) {
+    payload.image_url = image_url;
+  }
+
+  if (req.file) {
+    payload.image_url = await uploadCloudinary(req.file.buffer, "transactions");
+  }
+
+  const result = await transactionService.updateTransaction(user_id, id, payload);
 
   return successResponse(res, "Update transaction successfully", result);
 };

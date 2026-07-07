@@ -87,7 +87,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await SecureStore.deleteItemAsync('token');
     await SecureStore.deleteItemAsync('user');
     await SecureStore.deleteItemAsync('refreshToken');
+    try {
+      const { clearDatabase } = require('../database/sqlite');
+      const { clearLocalLastSyncedAt } = require('../services/syncService');
+      await clearDatabase();
+      await clearLocalLastSyncedAt();
+    } catch (e) {
+      console.error('Failed to clear SQLite DB on logout:', e);
+    }
   };
+
+  useEffect(() => {
+    if (!token) return;
+
+    const NetInfo = require('@react-native-community/netinfo').default;
+    const { syncAll } = require('../services/syncService');
+
+    // Trigger initial sync
+    syncAll();
+
+    // Subscribe to network updates
+    const unsubscribe = NetInfo.addEventListener((state: any) => {
+      if (state.isConnected) {
+        console.log('Network online. Triggering syncAll...');
+        syncAll();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [token]);
 
   return (
     <AuthContext.Provider

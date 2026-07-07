@@ -189,6 +189,13 @@ const updateTransaction = async (id, payload) => {
     paramIndex++;
   }
 
+  // Handle image_url update or clearing (allows null value to clear the image)
+  if (payload.hasOwnProperty('image_url')) {
+    fields.push(`image_url = $${paramIndex}`);
+    values.push(payload.image_url);
+    paramIndex++;
+  }
+
   values.push(id);
 
   const result = await pool.query(

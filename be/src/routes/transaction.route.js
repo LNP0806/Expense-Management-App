@@ -54,6 +54,7 @@ router.post(
 
 router.patch(
   "/:id",
+  uploadMiddleware.single("image"),
   validateBody(updateTransactionSchema),
   asyncHandler(transactionController.updateTransaction),
 );

@@ -473,128 +473,130 @@ export default function BudgetsScreen() {
         }}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1 }}
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.bottomSheet}>
-                <View style={styles.bottomSheetHeader}>
-                  <Text style={styles.modalTitle}>
-                    {isEditModalOpen ? 'Chỉnh sửa ngân sách' : 'Tạo ngân sách'}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setIsCreateModalOpen(false);
-                      setIsEditModalOpen(false);
-                    }}
-                  >
-                    <Text style={styles.closeText}>Hủy</Text>
-                  </TouchableOpacity>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={StyleSheet.absoluteFillObject} />
+            </TouchableWithoutFeedback>
+
+            <View style={styles.bottomSheet}>
+              <View style={styles.bottomSheetHeader}>
+                <Text style={styles.modalTitle}>
+                  {isEditModalOpen ? 'Chỉnh sửa ngân sách' : 'Tạo ngân sách'}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsCreateModalOpen(false);
+                    setIsEditModalOpen(false);
+                  }}
+                >
+                  <Text style={styles.closeText}>Hủy</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView 
+                style={styles.modalScroll} 
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ flexGrow: 1 }}
+              >
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Tên ngân sách</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="VD: Chi tiêu gia đình..."
+                    placeholderTextColor="#6b7280"
+                    value={form.title}
+                    onChangeText={(val) => setForm((prev) => ({ ...prev, title: val }))}
+                  />
                 </View>
 
-                <ScrollView 
-                  style={styles.modalScroll} 
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{ flexGrow: 1 }}
-                >
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Tên ngân sách</Text>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Số tiền hạn mức</Text>
+                  <View style={styles.amountInputContainer}>
                     <TextInput
-                      style={styles.input}
-                      placeholder="VD: Chi tiêu gia đình..."
+                      style={[styles.input, { flex: 1, paddingRight: 40 }]}
+                      placeholder="Nhập số tiền..."
                       placeholderTextColor="#6b7280"
-                      value={form.title}
-                      onChangeText={(val) => setForm((prev) => ({ ...prev, title: val }))}
+                      keyboardType="numeric"
+                      value={form.amount}
+                      onChangeText={(val) => setForm((prev) => ({ ...prev, amount: formatAmountInput(val) }))}
                     />
+                    <Text style={styles.amountSuffix}>đ</Text>
                   </View>
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Số tiền hạn mức</Text>
-                    <View style={styles.amountInputContainer}>
-                      <TextInput
-                        style={[styles.input, { flex: 1, paddingRight: 40 }]}
-                        placeholder="Nhập số tiền..."
-                        placeholderTextColor="#6b7280"
-                        keyboardType="numeric"
-                        value={form.amount}
-                        onChangeText={(val) => setForm((prev) => ({ ...prev, amount: formatAmountInput(val) }))}
-                      />
-                      <Text style={styles.amountSuffix}>đ</Text>
-                    </View>
-                  </View>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Ngày bắt đầu</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#6b7280"
+                    value={form.startDate}
+                    onChangeText={(val) => setForm((prev) => ({ ...prev, startDate: val }))}
+                  />
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Ngày bắt đầu</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="YYYY-MM-DD"
-                      placeholderTextColor="#6b7280"
-                      value={form.startDate}
-                      onChangeText={(val) => setForm((prev) => ({ ...prev, startDate: val }))}
-                    />
-                  </View>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Ngày kết thúc</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#6b7280"
+                    value={form.endDate}
+                    onChangeText={(val) => setForm((prev) => ({ ...prev, endDate: val }))}
+                  />
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Ngày kết thúc</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="YYYY-MM-DD"
-                      placeholderTextColor="#6b7280"
-                      value={form.endDate}
-                      onChangeText={(val) => setForm((prev) => ({ ...prev, endDate: val }))}
-                    />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Danh mục áp dụng</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catSelectionRow}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Danh mục áp dụng</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catSelectionRow}>
+                    <TouchableOpacity
+                      style={[styles.catOption, form.categoryId === '' && styles.catOptionActive]}
+                      onPress={() => setForm((prev) => ({ ...prev, categoryId: '' }))}
+                    >
+                      <Text style={styles.catOptionText}>Tất cả danh mục</Text>
+                    </TouchableOpacity>
+                    {Object.values(categories).map((c: any) => (
                       <TouchableOpacity
-                        style={[styles.catOption, form.categoryId === '' && styles.catOptionActive]}
-                        onPress={() => setForm((prev) => ({ ...prev, categoryId: '' }))}
+                        key={c.id}
+                        style={[styles.catOption, form.categoryId === c.id && styles.catOptionActive]}
+                        onPress={() => setForm((prev) => ({ ...prev, categoryId: c.id }))}
                       >
-                        <Text style={styles.catOptionText}>Tất cả danh mục</Text>
+                        <Text style={styles.catOptionText}>{c.name}</Text>
                       </TouchableOpacity>
-                      {Object.values(categories).map((c: any) => (
-                        <TouchableOpacity
-                          key={c.id}
-                          style={[styles.catOption, form.categoryId === c.id && styles.catOptionActive]}
-                          onPress={() => setForm((prev) => ({ ...prev, categoryId: c.id }))}
-                        >
-                          <Text style={styles.catOptionText}>{c.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
+                    ))}
+                  </ScrollView>
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Mô tả</Text>
-                    <TextInput
-                      style={[styles.input, styles.textArea]}
-                      placeholder="Mô tả ngân sách (nếu có)..."
-                      placeholderTextColor="#6b7280"
-                      multiline
-                      numberOfLines={3}
-                      value={form.description}
-                      onChangeText={(val) => setForm((prev) => ({ ...prev, description: val }))}
-                    />
-                  </View>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Mô tả</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    placeholder="Mô tả ngân sách (nếu có)..."
+                    placeholderTextColor="#6b7280"
+                    multiline
+                    numberOfLines={3}
+                    value={form.description}
+                    onChangeText={(val) => setForm((prev) => ({ ...prev, description: val }))}
+                  />
+                </View>
 
-                  <TouchableOpacity
-                    style={styles.saveBtn}
-                    onPress={() => handleSaveBudget(isEditModalOpen)}
-                    disabled={submitting}
-                  >
-                    {submitting ? (
-                      <ActivityIndicator color="#ffffff" />
-                    ) : (
-                      <Text style={styles.saveBtnText}>Lưu ngân sách</Text>
-                    )}
-                  </TouchableOpacity>
-                </ScrollView>
-              </View>
+                <TouchableOpacity
+                  style={styles.saveBtn}
+                  onPress={() => handleSaveBudget(isEditModalOpen)}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text style={styles.saveBtnText}>Lưu ngân sách</Text>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
             </View>
-          </TouchableWithoutFeedback>
+          </View>
         </KeyboardAvoidingView>
       </Modal>
     </View>

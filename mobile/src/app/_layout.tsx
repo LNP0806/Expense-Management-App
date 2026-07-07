@@ -2,6 +2,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { View, ActivityIndicator } from 'react-native';
+import { initDatabase } from '../database/sqlite';
 
 function RootLayoutNav() {
   const { isAuthenticated, loading } = useAuth();
@@ -34,6 +35,12 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    initDatabase().catch((err) => {
+      console.error('Failed to initialize SQLite local DB:', err);
+    });
+  }, []);
+
   return (
     <AuthProvider>
       <RootLayoutNav />

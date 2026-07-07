@@ -75,14 +75,15 @@ const getCategoryById = async (id) => {
 const createCategory = async (user_id, payload) => {
   const result = await pool.query(
     `
-    INSERT INTO categories (user_id, name, description)
-    VALUES ($1, $2, $3)
+    INSERT INTO categories (id, user_id, name, description)
+    VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4)
     RETURNING id, user_id, name, description, created_at, updated_at
     `,
     [
+      payload.id || null,
       user_id,
       payload.name.trim(),
-      payload.description ? description.trim() : null,
+      payload.description ? payload.description.trim() : null,
     ],
   );
 

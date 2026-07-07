@@ -31,10 +31,11 @@ const getBudgetById = async (req, res, next) => {
 const createBudget = async (req, res, next) => {
   const user_id = req.user.id;
 
-  const { title, description, category_id, amount, start_date, end_date } =
+  const { id, title, description, category_id, amount, start_date, end_date } =
     req.validateBody;
 
   const result = await budgetService.createBudget(user_id, {
+    id,
     title,
     description,
     category_id,

@@ -43,10 +43,11 @@ const createTransaction = async (req, res, next) => {
 
   const user_id = req.user.id;
 
-  const { title, description, type, category_id, amount, transaction_date } =
+  const { id, title, description, type, category_id, amount, transaction_date } =
     req.validateBody;
 
   const result = await transactionService.createTransaction(user_id, {
+    id,
     title,
     description,
     type,

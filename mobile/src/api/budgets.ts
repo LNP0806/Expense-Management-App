@@ -252,6 +252,7 @@ export const budgetsApi: any = {
 
     // Backend format expected: array of { budget_id: string, spent: number }
     const mapped = rows.map((r) => ({
+      id: r.budget_id,
       budget_id: r.budget_id,
       spent: Number(r.spent),
     }));

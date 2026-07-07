@@ -45,6 +45,7 @@ const getTransactionById = async (user_id, id) => {
 
 const createTransaction = async (user_id, payload) => {
   const {
+    id,
     title,
     description,
     type,
@@ -63,6 +64,7 @@ const createTransaction = async (user_id, payload) => {
   }
 
   const newTransaction = await transactionRepo.createTransaction(user_id, {
+    id,
     title,
     description,
     type,

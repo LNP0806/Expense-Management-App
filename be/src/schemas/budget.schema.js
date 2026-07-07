@@ -1,6 +1,8 @@
 const { z } = require("zod");
 
 const createBudgetSchema = z.object({
+  id: z.string().uuid("Invalid ID format").optional(),
+
   title: z
     .string({
       required_error: "Title is required",

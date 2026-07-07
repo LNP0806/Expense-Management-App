@@ -38,11 +38,12 @@ const getCategoryById = async (req, res, next) => {
 };
 
 const createCategory = async (req, res, next) => {
-  const { name, description } = req.validateBody;
+  const { id, name, description } = req.validateBody;
 
   const user_id = req.user.id;
 
   const result = await categoryService.createCategory(user_id, {
+    id,
     name,
     description,
   });

@@ -46,9 +46,10 @@ const getCategoryById = async (user_id, id) => {
 };
 
 const createCategory = async (user_id, payload) => {
-  const { name, description } = payload;
+  const { id, name, description } = payload;
 
   const newCategory = await categoryRepo.createCategory(user_id, {
+    id,
     name,
     description,
   });

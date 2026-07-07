@@ -1,6 +1,8 @@
 const { z } = require("zod");
 
 const createCategorySchema = z.object({
+  id: z.string().uuid("Invalid ID format").optional(),
+
   name: z
     .string({
       required_error: "Name is required",

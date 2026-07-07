@@ -53,16 +53,17 @@ const getBudgetById = async (user_id, id) => {
 };
 
 const createBudget = async (user_id, payload) => {
-  const { title, description, category_id, amount, start_date, end_date } =
+  const { id, title, description, category_id, amount, start_date, end_date } =
     payload;
 
   const result = await pool.query(
     `
-    INSERT INTO budgets (user_id, title, description, category_id, amount, start_date, end_date)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO budgets (id, user_id, title, description, category_id, amount, start_date, end_date)
+    VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8)
     RETURNING id, user_id, category_id, title, description, amount, start_date, end_date, created_at, updated_at
     `,
     [
+      id || null,
       user_id,
       title,
       description ? description.trim() : null,

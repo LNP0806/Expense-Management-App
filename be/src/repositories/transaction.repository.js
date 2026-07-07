@@ -93,6 +93,7 @@ const getTransactionById = async (user_id, id) => {
 
 const createTransaction = async (user_id, payload) => {
   const {
+    id,
     title,
     description,
     category_id,
@@ -104,8 +105,8 @@ const createTransaction = async (user_id, payload) => {
 
   const result = await pool.query(
     `
-    INSERT INTO transactions (user_id, title, description, category_id, type, amount, image_url, transaction_date)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO transactions (id, user_id, title, description, category_id, type, amount, image_url, transaction_date)
+    VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id,
     user_id,
     category_id,
@@ -119,6 +120,7 @@ const createTransaction = async (user_id, payload) => {
     updated_at
     `,
     [
+      id || null,
       user_id,
       title.trim(),
       description ? description.trim() : null,

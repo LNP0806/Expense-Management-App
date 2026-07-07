@@ -37,7 +37,7 @@ const getBudgetById = async (user_id, id) => {
 };
 
 const createBudget = async (user_id, payload) => {
-  const { title, description, category_id, amount, start_date, end_date } =
+  const { id, title, description, category_id, amount, start_date, end_date } =
     payload;
 
   if (category_id) {
@@ -49,6 +49,7 @@ const createBudget = async (user_id, payload) => {
   }
 
   const newBudget = await budgetRepo.createBudget(user_id, {
+    id,
     title,
     description,
     category_id,

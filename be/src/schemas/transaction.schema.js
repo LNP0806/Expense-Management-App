@@ -1,6 +1,8 @@
 const { z, optional } = require("zod");
 
 const createTransactionSchema = z.object({
+  id: z.string().uuid("Invalid ID format").optional(),
+
   title: z
     .string({
       required_error: "Title is required",

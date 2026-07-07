@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { categoriesApi } from '../../api/categories';
 import { Plus, Trash, Pencil, Tag, FileText, CheckCircle } from 'phosphor-react-native';
 
@@ -223,66 +223,72 @@ export default function CategoriesScreen() {
           setIsEditModalOpen(false);
         }}
       >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardContainer}
-          >
-            <View style={styles.bottomSheet}>
-              <View style={styles.bottomSheetHeader}>
-                <Text style={styles.modalTitle}>
-                  {isEditModalOpen ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setIsCreateModalOpen(false);
-                    setIsEditModalOpen(false);
-                  }}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.bottomSheet}>
+                <View style={styles.bottomSheetHeader}>
+                  <Text style={styles.modalTitle}>
+                    {isEditModalOpen ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setIsCreateModalOpen(false);
+                      setIsEditModalOpen(false);
+                    }}
+                  >
+                    <Text style={styles.closeText}>Hủy</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView 
+                  style={styles.modalScroll} 
+                  keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={{ flexGrow: 1 }}
                 >
-                  <Text style={styles.closeText}>Hủy</Text>
-                </TouchableOpacity>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Tên danh mục</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="VD: Mua sắm, Làm thêm..."
+                      placeholderTextColor="#6b7280"
+                      value={form.name}
+                      onChangeText={(val) => setForm((prev) => ({ ...prev, name: val }))}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Mô tả</Text>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      placeholder="Mô tả danh mục chi tiêu này..."
+                      placeholderTextColor="#6b7280"
+                      multiline
+                      numberOfLines={3}
+                      value={form.description}
+                      onChangeText={(val) => setForm((prev) => ({ ...prev, description: val }))}
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.saveBtn}
+                    onPress={() => handleSaveCategory(isEditModalOpen)}
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <ActivityIndicator color="#ffffff" />
+                    ) : (
+                      <Text style={styles.saveBtnText}>Lưu danh mục</Text>
+                    )}
+                  </TouchableOpacity>
+                </ScrollView>
               </View>
-
-              <ScrollView style={styles.modalScroll} keyboardShouldPersistTaps="handled">
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Tên danh mục</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="VD: Mua sắm, Làm thêm..."
-                    placeholderTextColor="#6b7280"
-                    value={form.name}
-                    onChangeText={(val) => setForm((prev) => ({ ...prev, name: val }))}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Mô tả</Text>
-                  <TextInput
-                    style={[styles.input, styles.textArea]}
-                    placeholder="Mô tả danh mục chi tiêu này..."
-                    placeholderTextColor="#6b7280"
-                    multiline
-                    numberOfLines={3}
-                    value={form.description}
-                    onChangeText={(val) => setForm((prev) => ({ ...prev, description: val }))}
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={styles.saveBtn}
-                  onPress={() => handleSaveCategory(isEditModalOpen)}
-                  disabled={submitting}
-                >
-                  {submitting ? (
-                    <ActivityIndicator color="#ffffff" />
-                  ) : (
-                    <Text style={styles.saveBtnText}>Lưu danh mục</Text>
-                  )}
-                </TouchableOpacity>
-              </ScrollView>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

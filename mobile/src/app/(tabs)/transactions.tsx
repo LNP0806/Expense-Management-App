@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { transactionsApi } from '../../api/transactions';
 import { categoriesApi } from '../../api/categories';
 import { Pencil, Trash, Plus, MagnifyingGlass, Funnel, Calendar, Tag, FileText, CheckCircle } from 'phosphor-react-native';
@@ -435,130 +435,136 @@ export default function TransactionsScreen() {
           setIsEditModalOpen(false);
         }}
       >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardContainer}
-          >
-            <View style={styles.bottomSheet}>
-              <View style={styles.bottomSheetHeader}>
-                <Text style={styles.modalTitle}>
-                  {isEditModalOpen ? 'Chỉnh sửa giao dịch' : 'Thêm giao dịch'}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setIsCreateModalOpen(false);
-                    setIsEditModalOpen(false);
-                  }}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.bottomSheet}>
+                <View style={styles.bottomSheetHeader}>
+                  <Text style={styles.modalTitle}>
+                    {isEditModalOpen ? 'Chỉnh sửa giao dịch' : 'Thêm giao dịch'}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setIsCreateModalOpen(false);
+                      setIsEditModalOpen(false);
+                    }}
+                  >
+                    <Text style={styles.closeText}>Hủy</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView 
+                  style={styles.modalScroll} 
+                  keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={{ flexGrow: 1 }}
                 >
-                  <Text style={styles.closeText}>Hủy</Text>
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={styles.modalScroll} keyboardShouldPersistTaps="handled">
-                {/* Type Toggle */}
-                <View style={styles.formToggleRow}>
-                  <TouchableOpacity
-                    style={[styles.toggleBtn, form.type === 'EXPENSE' && styles.toggleBtnActiveExpense]}
-                    onPress={() => setForm((prev) => ({ ...prev, type: 'EXPENSE' }))}
-                  >
-                    <Text style={[styles.toggleText, form.type === 'EXPENSE' && styles.toggleTextActive]}>Chi tiêu</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.toggleBtn, form.type === 'INCOME' && styles.toggleBtnActiveIncome]}
-                    onPress={() => setForm((prev) => ({ ...prev, type: 'INCOME' }))}
-                  >
-                    <Text style={[styles.toggleText, form.type === 'INCOME' && styles.toggleTextActive]}>Thu nhập</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Form Fields */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Tiêu đề</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Tên giao dịch (VD: Ăn tối)..."
-                    placeholderTextColor="#6b7280"
-                    value={form.title}
-                    onChangeText={(val) => setForm((prev) => ({ ...prev, title: val }))}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Số tiền</Text>
-                  <View style={styles.amountInputContainer}>
-                    <TextInput
-                      style={[styles.input, { flex: 1, paddingRight: 40 }]}
-                      placeholder="Nhập số tiền..."
-                      placeholderTextColor="#6b7280"
-                      keyboardType="numeric"
-                      value={form.amount}
-                      onChangeText={(val) => setForm((prev) => ({ ...prev, amount: formatAmountInput(val) }))}
-                    />
-                    <Text style={styles.amountSuffix}>đ</Text>
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Ngày thực hiện</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#6b7280"
-                    value={form.date}
-                    onChangeText={(val) => setForm((prev) => ({ ...prev, date: val }))}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Danh mục</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catSelectionRow}>
+                  {/* Type Toggle */}
+                  <View style={styles.formToggleRow}>
                     <TouchableOpacity
-                      style={[styles.catOption, form.categoryId === '' && styles.catOptionActive]}
-                      onPress={() => setForm((prev) => ({ ...prev, categoryId: '' }))}
+                      style={[styles.toggleBtn, form.type === 'EXPENSE' && styles.toggleBtnActiveExpense]}
+                      onPress={() => setForm((prev) => ({ ...prev, type: 'EXPENSE' }))}
                     >
-                      <Text style={styles.catOptionText}>Chưa phân loại</Text>
+                      <Text style={[styles.toggleText, form.type === 'EXPENSE' && styles.toggleTextActive]}>Chi tiêu</Text>
                     </TouchableOpacity>
-                    {Object.values(categories).map((c: any) => (
+                    <TouchableOpacity
+                      style={[styles.toggleBtn, form.type === 'INCOME' && styles.toggleBtnActiveIncome]}
+                      onPress={() => setForm((prev) => ({ ...prev, type: 'INCOME' }))}
+                    >
+                      <Text style={[styles.toggleText, form.type === 'INCOME' && styles.toggleTextActive]}>Thu nhập</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Form Fields */}
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Tiêu đề</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Tên giao dịch (VD: Ăn tối)..."
+                      placeholderTextColor="#6b7280"
+                      value={form.title}
+                      onChangeText={(val) => setForm((prev) => ({ ...prev, title: val }))}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Số tiền</Text>
+                    <View style={styles.amountInputContainer}>
+                      <TextInput
+                        style={[styles.input, { flex: 1, paddingRight: 40 }]}
+                        placeholder="Nhập số tiền..."
+                        placeholderTextColor="#6b7280"
+                        keyboardType="numeric"
+                        value={form.amount}
+                        onChangeText={(val) => setForm((prev) => ({ ...prev, amount: formatAmountInput(val) }))}
+                      />
+                      <Text style={styles.amountSuffix}>đ</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Ngày thực hiện</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor="#6b7280"
+                      value={form.date}
+                      onChangeText={(val) => setForm((prev) => ({ ...prev, date: val }))}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Danh mục</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catSelectionRow}>
                       <TouchableOpacity
-                        key={c.id}
-                        style={[styles.catOption, form.categoryId === c.id && styles.catOptionActive]}
-                        onPress={() => setForm((prev) => ({ ...prev, categoryId: c.id }))}
+                        style={[styles.catOption, form.categoryId === '' && styles.catOptionActive]}
+                        onPress={() => setForm((prev) => ({ ...prev, categoryId: '' }))}
                       >
-                        <Text style={styles.catOptionText}>{c.name}</Text>
+                        <Text style={styles.catOptionText}>Chưa phân loại</Text>
                       </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
+                      {Object.values(categories).map((c: any) => (
+                        <TouchableOpacity
+                          key={c.id}
+                          style={[styles.catOption, form.categoryId === c.id && styles.catOptionActive]}
+                          onPress={() => setForm((prev) => ({ ...prev, categoryId: c.id }))}
+                        >
+                          <Text style={styles.catOptionText}>{c.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Ghi chú</Text>
-                  <TextInput
-                    style={[styles.input, styles.textArea]}
-                    placeholder="Mô tả chi tiết giao dịch (nếu có)..."
-                    placeholderTextColor="#6b7280"
-                    multiline
-                    numberOfLines={3}
-                    value={form.description}
-                    onChangeText={(val) => setForm((prev) => ({ ...prev, description: val }))}
-                  />
-                </View>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Ghi chú</Text>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      placeholder="Mô tả chi tiết giao dịch (nếu có)..."
+                      placeholderTextColor="#6b7280"
+                      multiline
+                      numberOfLines={3}
+                      value={form.description}
+                      onChangeText={(val) => setForm((prev) => ({ ...prev, description: val }))}
+                    />
+                  </View>
 
-                <TouchableOpacity
-                  style={styles.saveBtn}
-                  onPress={() => handleSaveTransaction(isEditModalOpen)}
-                  disabled={submitting}
-                >
-                  {submitting ? (
-                    <ActivityIndicator color="#ffffff" />
-                  ) : (
-                    <Text style={styles.saveBtnText}>Lưu giao dịch</Text>
-                  )}
-                </TouchableOpacity>
-              </ScrollView>
+                  <TouchableOpacity
+                    style={styles.saveBtn}
+                    onPress={() => handleSaveTransaction(isEditModalOpen)}
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <ActivityIndicator color="#ffffff" />
+                    ) : (
+                      <Text style={styles.saveBtnText}>Lưu giao dịch</Text>
+                    )}
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

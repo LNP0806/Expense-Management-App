@@ -11,12 +11,15 @@ const createTransactionSchema = z.object({
     .min(1, "Title can not be empty")
     .max(100, "Title must be less than 100 characters"),
 
-  description: z
-    .string({ invalid_type_error: "Description must be a string" })
-    .min(1, "Description can not be empty")
-    .max(1000, "Description must be less than 1000 characters")
-    .optional()
-    .nullable(),
+  description: z.preprocess(
+    (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+    z
+      .string({ invalid_type_error: "Description must be a string" })
+      .min(1, "Description can not be empty")
+      .max(1000, "Description must be less than 1000 characters")
+      .optional()
+      .nullable()
+  ),
 
   type: z.enum(["INCOME", "EXPENSE"], {
     error_map: () => ({ message: "Type must be either INCOME or EXPENSE" }),
@@ -29,17 +32,23 @@ const createTransactionSchema = z.object({
     })
     .min(1, "Amount must be greater than 0"),
 
-  category_id: z
-    .string()
-    .uuid("Invalid category id format")
-    .optional()
-    .nullable(),
+  category_id: z.preprocess(
+    (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+    z
+      .string()
+      .uuid("Invalid category id format")
+      .optional()
+      .nullable()
+  ),
 
-  transaction_date: z
-    .string()
-    .date("Invalid date format (YYYY-MM-DD)")
-    .optional()
-    .nullable(),
+  transaction_date: z.preprocess(
+    (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+    z
+      .string()
+      .date("Invalid date format (YYYY-MM-DD)")
+      .optional()
+      .nullable()
+  ),
 });
 
 const updateTransactionSchema = z
@@ -52,12 +61,15 @@ const updateTransactionSchema = z
       .max(100, "Title must be less than 100 characters")
       .optional(),
 
-    description: z
-      .string({ invalid_type_error: "Description must be a string" })
-      .min(1, "Description can not be empty")
-      .max(1000, "Description must be less than 1000 characters")
-      .optional()
-      .nullable(),
+    description: z.preprocess(
+      (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+      z
+        .string({ invalid_type_error: "Description must be a string" })
+        .min(1, "Description can not be empty")
+        .max(1000, "Description must be less than 1000 characters")
+        .optional()
+        .nullable()
+    ),
 
     type: z
       .enum(["INCOME", "EXPENSE"], {
@@ -72,13 +84,23 @@ const updateTransactionSchema = z
       .min(1, "Amount must be greater than 0")
       .optional(),
 
-    category_id: z.string().uuid("Invalid category id format").optional().nullable(),
+    category_id: z.preprocess(
+      (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+      z
+        .string()
+        .uuid("Invalid category id format")
+        .optional()
+        .nullable()
+    ),
 
-    transaction_date: z
-      .string()
-      .date("Invalid date format (YYYY-MM-DD)")
-      .optional()
-      .nullable(),
+    transaction_date: z.preprocess(
+      (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+      z
+        .string()
+        .date("Invalid date format (YYYY-MM-DD)")
+        .optional()
+        .nullable()
+    ),
 
     image_url: z
       .string({ invalid_type_error: "Image URL must be a string" })

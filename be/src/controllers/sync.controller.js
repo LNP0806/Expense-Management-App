@@ -13,11 +13,11 @@ const syncData = async (req, res, next) => {
     }
   }
 
-  // 1. Fetch categories (user specific + system categories)
+  // 1. Fetch categories (user specific only)
   const categoriesQuery = `
     SELECT id, name, description, user_id, created_at, updated_at, deleted_at
     FROM categories
-    WHERE (user_id = $1 OR user_id IS NULL) AND updated_at > $2
+    WHERE user_id = $1 AND updated_at > $2
   `;
 
   // 2. Fetch transactions (user specific only)

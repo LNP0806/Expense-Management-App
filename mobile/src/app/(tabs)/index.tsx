@@ -32,6 +32,9 @@ export default function DashboardScreen() {
         setLoading(true); // Ensure loading spinner is visible
         console.log('First login detected, executing blocking/awaiting syncAll...');
         await syncAll(); // Block and await first pull from server
+      } else {
+        // Run background sync for subsequent mounts to fetch any new updates
+        syncAll();
       }
 
       // Fetch transactions from local SQLite database

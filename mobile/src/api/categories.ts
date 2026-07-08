@@ -12,7 +12,7 @@ const generateUUID = (): string => {
 export const categoriesApi: any = {
   getAll: async (params: any = {}) => {
     const db = await getDb();
-    let query = 'SELECT * FROM local_categories WHERE deleted_at IS NULL';
+    let query = 'SELECT * FROM local_categories WHERE deleted_at IS NULL AND user_id IS NOT NULL';
     const queryParams: any[] = [];
 
     if (params.keyword) {

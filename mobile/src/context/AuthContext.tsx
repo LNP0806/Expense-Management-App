@@ -103,9 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const NetInfo = require('@react-native-community/netinfo').default;
     const { syncAll } = require('../services/syncService');
 
-    // Trigger initial sync
-    syncAll();
-
     // Subscribe to network updates
     const unsubscribe = NetInfo.addEventListener((state: any) => {
       if (state.isConnected) {

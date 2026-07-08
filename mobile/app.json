@@ -7,6 +7,14 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
+    "updates": {
+      "url": "https://u.expo.dev/e0e32a08-d8b2-48b4-88dd-0a2eefa42533",
+      "checkAutomatically": "ON_APP_START",
+      "fallbackToCacheTimeout": 10000
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.smartspend.app"
@@ -39,7 +47,8 @@
       "expo-secure-store",
       "expo-font",
       "expo-web-browser",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true,

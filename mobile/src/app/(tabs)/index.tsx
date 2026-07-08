@@ -22,7 +22,19 @@ export default function DashboardScreen() {
   const fetchDashboardData = useCallback(async () => {
     try {
       setError(false);
-      // Fetch transactions from backend
+
+      // Check if this is the first sync (epoch time)
+      const { getLocalLastSyncedAt, syncAll } = require('../../services/syncService');
+      const lastSynced = await getLocalLastSyncedAt();
+      const isFirstSync = lastSynced === new Date(0).toISOString();
+
+      if (isFirstSync) {
+        setLoading(true); // Ensure loading spinner is visible
+        console.log('First login detected, executing blocking/awaiting syncAll...');
+        await syncAll(); // Block and await first pull from server
+      }
+
+      // Fetch transactions from local SQLite database
       const res = await transactionsApi.getAll({ limit: 100 });
       if (res.data.success) {
         const rawData = res.data.data;

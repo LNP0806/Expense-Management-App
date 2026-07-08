@@ -125,14 +125,21 @@ export const pullServerChanges = async (): Promise<void> => {
       );
       if (!existing) {
         await db.runAsync(
-          'INSERT OR IGNORE INTO local_categories (id, name, description, user_id, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          'INSERT OR REPLACE INTO local_categories (id, name, description, user_id, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?)',
           [cat.id, cat.name, cat.description || null, cat.user_id || null, cat.created_at, cat.updated_at, 'synced']
         );
-      } else if (new Date(cat.updated_at) > new Date(existing.updated_at)) {
-        await db.runAsync(
-          'UPDATE local_categories SET name = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
-          [cat.name, cat.description || null, cat.updated_at, 'synced', cat.id]
-        );
+      } else {
+        if (new Date(cat.updated_at) > new Date(existing.updated_at)) {
+          await db.runAsync(
+            'UPDATE local_categories SET name = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
+            [cat.name, cat.description || null, cat.updated_at, 'synced', cat.id]
+          );
+        } else if (existing._sync_status !== 'synced') {
+          await db.runAsync(
+            'UPDATE local_categories SET _sync_status = ? WHERE id = ?',
+            ['synced', cat.id]
+          );
+        }
       }
     }
   }
@@ -148,14 +155,21 @@ export const pullServerChanges = async (): Promise<void> => {
       );
       if (!existing) {
         await db.runAsync(
-          'INSERT OR IGNORE INTO local_transactions (id, category_id, title, amount, type, image_url, transaction_date, description, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          'INSERT OR REPLACE INTO local_transactions (id, category_id, title, amount, type, image_url, transaction_date, description, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [tx.id, tx.category_id || null, tx.title, Number(tx.amount), tx.type, tx.image_url || null, tx.transaction_date, tx.description || null, tx.created_at, tx.updated_at, 'synced']
         );
-      } else if (new Date(tx.updated_at) > new Date(existing.updated_at)) {
-        await db.runAsync(
-          'UPDATE local_transactions SET category_id = ?, title = ?, amount = ?, type = ?, image_url = ?, transaction_date = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
-          [tx.category_id || null, tx.title, Number(tx.amount), tx.type, tx.image_url || null, tx.transaction_date, tx.description || null, tx.updated_at, 'synced', tx.id]
-        );
+      } else {
+        if (new Date(tx.updated_at) > new Date(existing.updated_at)) {
+          await db.runAsync(
+            'UPDATE local_transactions SET category_id = ?, title = ?, amount = ?, type = ?, image_url = ?, transaction_date = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
+            [tx.category_id || null, tx.title, Number(tx.amount), tx.type, tx.image_url || null, tx.transaction_date, tx.description || null, tx.updated_at, 'synced', tx.id]
+          );
+        } else if (existing._sync_status !== 'synced') {
+          await db.runAsync(
+            'UPDATE local_transactions SET _sync_status = ? WHERE id = ?',
+            ['synced', tx.id]
+          );
+        }
       }
     }
   }
@@ -171,14 +185,21 @@ export const pullServerChanges = async (): Promise<void> => {
       );
       if (!existing) {
         await db.runAsync(
-          'INSERT OR IGNORE INTO local_budgets (id, category_id, title, amount, start_date, end_date, description, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          'INSERT OR REPLACE INTO local_budgets (id, category_id, title, amount, start_date, end_date, description, created_at, updated_at, _sync_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [b.id, b.category_id || null, b.title, Number(b.amount), b.start_date, b.end_date, b.description || null, b.created_at, b.updated_at, 'synced']
         );
-      } else if (new Date(b.updated_at) > new Date(existing.updated_at)) {
-        await db.runAsync(
-          'UPDATE local_budgets SET category_id = ?, title = ?, amount = ?, start_date = ?, end_date = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
-          [b.category_id || null, b.title, Number(b.amount), b.start_date, b.end_date, b.description || null, b.updated_at, 'synced', b.id]
-        );
+      } else {
+        if (new Date(b.updated_at) > new Date(existing.updated_at)) {
+          await db.runAsync(
+            'UPDATE local_budgets SET category_id = ?, title = ?, amount = ?, start_date = ?, end_date = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
+            [b.category_id || null, b.title, Number(b.amount), b.start_date, b.end_date, b.description || null, b.updated_at, 'synced', b.id]
+          );
+        } else if (existing._sync_status !== 'synced') {
+          await db.runAsync(
+            'UPDATE local_budgets SET _sync_status = ? WHERE id = ?',
+            ['synced', b.id]
+          );
+        }
       }
     }
   }

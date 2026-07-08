@@ -82,11 +82,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    setToken(null);
-    setUser(null);
-    await SecureStore.deleteItemAsync('token');
-    await SecureStore.deleteItemAsync('user');
-    await SecureStore.deleteItemAsync('refreshToken');
     try {
       const { clearDatabase } = require('../database/sqlite');
       const { clearLocalLastSyncedAt } = require('../services/syncService');
@@ -95,6 +90,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.error('Failed to clear SQLite DB on logout:', e);
     }
+    await SecureStore.deleteItemAsync('token');
+    await SecureStore.deleteItemAsync('user');
+    await SecureStore.deleteItemAsync('refreshToken');
+    setToken(null);
+    setUser(null);
   };
 
   useEffect(() => {

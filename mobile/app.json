@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "updates": {
       "url": "https://u.expo.dev/e0e32a08-d8b2-48b4-88dd-0a2eefa42533",
-      "checkAutomatically": "ON_APP_START",
+      "checkAutomatically": "onStart",
       "fallbackToCacheTimeout": 10000
     },
     "runtimeVersion": {
@@ -21,7 +21,7 @@
     },
     "android": {
       "package": "com.smartspend.app",
-      "softwareKeyboardLayoutMode": "adjustResize",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

@@ -131,13 +131,13 @@ export const pullServerChanges = async (): Promise<void> => {
       } else {
         if (new Date(cat.updated_at) > new Date(existing.updated_at)) {
           await db.runAsync(
-            'UPDATE local_categories SET name = ?, description = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
-            [cat.name, cat.description || null, cat.updated_at, 'synced', cat.id]
+            'UPDATE local_categories SET name = ?, description = ?, user_id = ?, updated_at = ?, _sync_status = ? WHERE id = ?',
+            [cat.name, cat.description || null, cat.user_id || null, cat.updated_at, 'synced', cat.id]
           );
         } else if (existing._sync_status !== 'synced') {
           await db.runAsync(
-            'UPDATE local_categories SET _sync_status = ? WHERE id = ?',
-            ['synced', cat.id]
+            'UPDATE local_categories SET user_id = ?, _sync_status = ? WHERE id = ?',
+            [cat.user_id || null, 'synced', cat.id]
           );
         }
       }

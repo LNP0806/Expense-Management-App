@@ -76,9 +76,9 @@ export default function BudgetsScreen() {
     }
   };
 
-  const loadBudgets = useCallback(async () => {
+  const loadBudgets = useCallback(async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       
       // 1. Fetch budgets list (schema fields)
       const resBudgets = await budgetsApi.getAll({ limit: 100 });
@@ -133,7 +133,7 @@ export default function BudgetsScreen() {
   useFocusEffect(
     useCallback(() => {
       loadCategories();
-      loadBudgets();
+      loadBudgets(true);
     }, [loadBudgets])
   );
 
@@ -141,7 +141,7 @@ export default function BudgetsScreen() {
     const sub = DeviceEventEmitter.addListener('sync-completed', () => {
       console.log('Sync complete event received in Budgets, reloading...');
       loadCategories();
-      loadBudgets();
+      loadBudgets(false);
     });
     return () => sub.remove();
   }, [loadBudgets]);

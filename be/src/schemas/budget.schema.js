@@ -11,12 +11,14 @@ const createBudgetSchema = z.object({
     .min(1, "Title can not be empty")
     .max(100, "Title must be less than 100 characters"),
 
-  description: z
-    .string({ invalid_type_error: "Description must be a string" })
-    .min(1, "Description can not be empty")
-    .max(1000, "Description must be less than 1000 characters")
-    .optional()
-    .nullable(),
+  description: z.preprocess(
+    (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+    z
+      .string({ invalid_type_error: "Description must be a string" })
+      .max(1000, "Description must be less than 1000 characters")
+      .optional()
+      .nullable()
+  ),
 
   amount: z
     .number({
@@ -57,7 +59,6 @@ const updateBudgetSchema = z
       (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
       z
         .string({ invalid_type_error: "Description must be a string" })
-        .min(1, "Description can not be empty")
         .max(1000, "Description must be less than 1000 characters")
         .optional()
         .nullable()

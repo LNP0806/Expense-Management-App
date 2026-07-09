@@ -11,13 +11,16 @@ const createCategorySchema = z.object({
     .min(1, "Name can not be empty")
     .max(100, "Name must be less than 100 characters"),
 
-  description: z
-    .string({
-      invalid_type_error: "Description must be a string",
-    })
-    .max(100, "Name must be less than 100 characters")
-    .optional()
-    .nullable(),
+  description: z.preprocess(
+    (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+    z
+      .string({
+        invalid_type_error: "Description must be a string",
+      })
+      .max(200, "Description must be less than 200 characters")
+      .optional()
+      .nullable()
+  ),
 });
 
 const updateCategory = z
@@ -30,13 +33,16 @@ const updateCategory = z
       .max(100, "Name must be less than 100 characters")
       .optional(),
 
-    description: z
-      .string({
-        invalid_type_error: "Description must be a string",
-      })
-      .min(1, "Description can not be empty")
-      .max(100, "Description must be less than 100 characters")
-      .optional(),
+    description: z.preprocess(
+      (val) => (val === "null" || val === "undefined" || val === "" ? null : val),
+      z
+        .string({
+          invalid_type_error: "Description must be a string",
+        })
+        .max(200, "Description must be less than 200 characters")
+        .optional()
+        .nullable()
+    ),
   })
   .refine((data) => data.name !== undefined || data.description !== undefined, {
     message: "At least one field is required",

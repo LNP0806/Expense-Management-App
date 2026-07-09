@@ -80,9 +80,9 @@ export default function TransactionsScreen() {
     }
   };
 
-  const loadTransactions = useCallback(async () => {
+  const loadTransactions = useCallback(async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       const res = await transactionsApi.getAll({ limit: 100 });
       if (res.data.success) {
         const rawData = res.data.data;
@@ -101,7 +101,7 @@ export default function TransactionsScreen() {
   useFocusEffect(
     useCallback(() => {
       loadCategories();
-      loadTransactions();
+      loadTransactions(true);
     }, [loadTransactions])
   );
 
@@ -109,7 +109,7 @@ export default function TransactionsScreen() {
     const sub = DeviceEventEmitter.addListener('sync-completed', () => {
       console.log('Sync complete event received in Transactions, reloading...');
       loadCategories();
-      loadTransactions();
+      loadTransactions(false);
     });
     return () => sub.remove();
   }, [loadTransactions]);

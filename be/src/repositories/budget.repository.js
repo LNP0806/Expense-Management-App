@@ -190,7 +190,7 @@ const getBudgetProgress = async (user_id) => {
     b.amount, 
     COALESCE(SUM(t.amount), 0) AS spent
     FROM budgets b
-    LEFT JOIN transactions t ON b.category_id = t.category_id 
+    LEFT JOIN transactions t ON (b.category_id IS NULL OR t.category_id = b.category_id)
               AND t.user_id = b.user_id
               AND t.type = 'EXPENSE'
               AND t.transaction_date BETWEEN b.start_date AND b.end_date

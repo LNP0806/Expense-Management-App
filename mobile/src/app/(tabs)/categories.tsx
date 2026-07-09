@@ -33,9 +33,9 @@ export default function CategoriesScreen() {
 
   const [submitting, setSubmitting] = useState(false);
 
-  const loadCategories = useCallback(async () => {
+  const loadCategories = useCallback(async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       const res = await categoriesApi.getAll({ limit: 100 });
       if (res.data.success) {
         const list = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.data || []);
@@ -52,14 +52,14 @@ export default function CategoriesScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadCategories();
+      loadCategories(true);
     }, [loadCategories])
   );
 
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener('sync-completed', () => {
       console.log('Sync complete event received in Categories, reloading...');
-      loadCategories();
+      loadCategories(false);
     });
     return () => sub.remove();
   }, [loadCategories]);

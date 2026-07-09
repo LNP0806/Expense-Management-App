@@ -12,12 +12,15 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [recentTx, setRecentTx] = useState<any[]>([]);
+  const [isSyncingFirstTime, setIsSyncingFirstTime] = useState(false);
   const [stats, setStats] = useState({
     income: 0,
     expense: 0,
     balance: 0,
     savingRate: 0,
   });
+
+  const [error, setError] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -30,8 +33,14 @@ export default function DashboardScreen() {
 
       if (isFirstSync) {
         setLoading(true); // Ensure loading spinner is visible
+        setIsSyncingFirstTime(true);
         console.log('First login detected, executing blocking/awaiting syncAll...');
-        await syncAll(); // Block and await first pull from server
+        const syncSuccess = await syncAll(); // Block and await first pull from server
+        setIsSyncingFirstTime(false);
+
+        if (!syncSuccess) {
+          throw new Error('Initial synchronization failed. Server may be starting up.');
+        }
       } else {
         // Run background sync for subsequent mounts to fetch any new updates
         syncAll();
@@ -76,12 +85,11 @@ export default function DashboardScreen() {
       console.error('Error loading dashboard:', e);
       setError(true);
     } finally {
+      setIsSyncingFirstTime(false);
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
-
-  const [error, setError] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -115,6 +123,28 @@ export default function DashboardScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#10b981" />
+        {isSyncingFirstTime && (
+          <View style={{ marginTop: 20, alignItems: 'center', paddingHorizontal: 20 }}>
+            <Text style={{ color: '#f1f3f5', fontSize: 16, fontWeight: '600', textAlign: 'center' }}>
+              Đang đồng bộ dữ liệu lần đầu...
+            </Text>
+            <Text style={{ color: '#9ca3af', fontSize: 13, marginTop: 8, textAlign: 'center' }}>
+              Máy chủ có thể mất tới 1 phút để khởi động lại nếu đang ở trạng thái ngủ.
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Không thể kết nối tới máy chủ hoặc máy chủ đang khởi động.</Text>
+        <Text style={styles.errorSubtext}>Vui lòng thử lại sau vài giây.</Text>
+        <TouchableOpacity style={styles.retryBtn} onPress={() => fetchDashboardData()}>
+          <Text style={styles.retryBtnText}>Thử lại</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -393,5 +423,36 @@ const styles = StyleSheet.create({
   txAmount: {
     fontSize: 15,
     fontWeight: '700',
+  },
+  errorContainer: {
+    flex: 1,
+    backgroundColor: '#0f1117',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorText: {
+    color: '#f1f3f5',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    color: '#9ca3af',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  retryBtn: {
+    backgroundColor: '#10b981',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryBtnText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

@@ -41,8 +41,7 @@ export const initDatabase = async (): Promise<void> => {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       deleted_at TEXT,
       _sync_status TEXT DEFAULT 'synced',
-      _last_synced_at TEXT,
-      FOREIGN KEY(category_id) REFERENCES local_categories(id) ON DELETE SET NULL
+      _last_synced_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS local_budgets (
@@ -57,8 +56,7 @@ export const initDatabase = async (): Promise<void> => {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       deleted_at TEXT,
       _sync_status TEXT DEFAULT 'synced',
-      _last_synced_at TEXT,
-      FOREIGN KEY(category_id) REFERENCES local_categories(id) ON DELETE CASCADE
+      _last_synced_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS sync_outbox (
@@ -79,10 +77,11 @@ export const initDatabase = async (): Promise<void> => {
 export const clearDatabase = async (): Promise<void> => {
   const db = await getDb();
   await db.execAsync(`
-    DELETE FROM local_transactions;
-    DELETE FROM local_budgets;
-    DELETE FROM local_categories;
-    DELETE FROM sync_outbox;
+    DROP TABLE IF EXISTS local_transactions;
+    DROP TABLE IF EXISTS local_budgets;
+    DROP TABLE IF EXISTS local_categories;
+    DROP TABLE IF EXISTS sync_outbox;
   `);
-  console.log('SQLite Local Database cleared successfully');
+  await initDatabase();
+  console.log('SQLite Local Database dropped and reinitialized successfully');
 };

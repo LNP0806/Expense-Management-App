@@ -104,8 +104,8 @@ const updateCategory = async (id, payload) => {
     paramIndex += 1;
   }
 
-  if (description) {
-    values.push(description.trim());
+  if (description !== undefined) {
+    values.push(description ? description.trim() : null);
     fields.push(`description = $${paramIndex}`);
     paramIndex += 1;
   }

@@ -91,9 +91,9 @@ const updateBudget = async (user_id, id, payload) => {
     paramIndex++;
   }
 
-  if (description) {
+  if (description !== undefined) {
     fields.push(`description = $${paramIndex}`);
-    values.push(description.trim());
+    values.push(description ? description.trim() : null);
     paramIndex++;
   }
 

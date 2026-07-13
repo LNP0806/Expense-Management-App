@@ -14,17 +14,6 @@ const requireAuth = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // const result = await pool.query(
-    //   `SELECT id, email, fullname FROM users WHERE id = $1`,
-    //   [decoded.id],
-    // );
-
-    // const user = result.rows[0];
-
-    // if (!user) {
-    //   return next(new AppError("User is no longer exists", 404));
-    // }
-
     req.user = {
       id: decoded.id,
       email: decoded.email,

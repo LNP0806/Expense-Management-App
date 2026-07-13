@@ -155,13 +155,6 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, [selectedMonthYear, addToast]);
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (4 < hour < 12) return 'Chào buổi sáng';
-    if (hour < 18) return 'Chào buổi chiều';
-    return 'Chào buổi tối';
-  };
-
   const getFormattedDate = () => {
     return new Intl.DateTimeFormat('vi-VN', {
       weekday: 'long',
@@ -261,7 +254,7 @@ export default function DashboardPage() {
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
         <div className="flex flex-col text-left">
           <h1 className="text-2xl md:text-3xl font-bold text-text-primary tracking-tight">
-            {getGreeting()}, {user?.fullname || 'Bạn'}
+            Chào {user?.fullname || 'Bạn'}
           </h1>
           <p className="text-sm text-text-secondary mt-1">{getFormattedDate()}</p>
         </div>

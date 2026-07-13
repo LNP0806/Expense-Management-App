@@ -14,22 +14,29 @@ const requireAuth = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const result = await pool.query(
-      `SELECT id, email, fullname FROM users WHERE id = $1`,
-      [decoded.id],
-    );
+    // const result = await pool.query(
+    //   `SELECT id, email, fullname FROM users WHERE id = $1`,
+    //   [decoded.id],
+    // );
 
-    const user = result.rows[0];
+    // const user = result.rows[0];
 
-    if (!user) {
-      return next(new AppError("User is no longer exists", 404));
-    }
+    // if (!user) {
+    //   return next(new AppError("User is no longer exists", 404));
+    // }
 
-    req.user = user;
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+    };
 
     next();
   } catch (error) {
-    next(new AppError("Invalid authentication token", 401));
+    const message =
+      error.name === "TokenExpiredError"
+        ? "Token expired"
+        : "Invalid authentication token";
+    next(new AppError(message, 401));
   }
 };
 

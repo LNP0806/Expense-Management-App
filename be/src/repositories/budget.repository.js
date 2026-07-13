@@ -193,6 +193,7 @@ const getBudgetProgress = async (user_id) => {
     LEFT JOIN transactions t ON (b.category_id IS NULL OR t.category_id = b.category_id)
               AND t.user_id = b.user_id
               AND t.type = 'EXPENSE'
+              AND t.deleted_at IS NULL
               AND t.transaction_date BETWEEN b.start_date AND b.end_date
     WHERE b.user_id = $1 AND b.deleted_at IS NUll
     GROUP BY b.id, b.title, b.amount, b.start_date

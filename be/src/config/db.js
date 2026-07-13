@@ -1,4 +1,5 @@
 const { Pool } = require("pg");
+let pool;
 
 if (process.env.NODE_ENV === "production") {
   console.log("Connecting to REMOTE Supabase Database...");

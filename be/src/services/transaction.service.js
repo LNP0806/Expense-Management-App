@@ -89,8 +89,15 @@ const updateTransaction = async (user_id, id, payload) => {
     throw new AppError("Transaction is not belong to user", 401);
   }
 
-  const { title, description, type, category_id, amount, transaction_date, image_url } =
-    payload;
+  const {
+    title,
+    description,
+    type,
+    category_id,
+    amount,
+    transaction_date,
+    image_url,
+  } = payload;
 
   if (category_id) {
     const isValidCategory = await isCategoryBelongToUser(user_id, category_id);
@@ -109,11 +116,14 @@ const updateTransaction = async (user_id, id, payload) => {
     transaction_date,
   };
 
-  if (payload.hasOwnProperty('image_url')) {
+  if (payload.hasOwnProperty("image_url")) {
     payloadToUpdate.image_url = image_url;
   }
 
-  const updatedTransaction = await transactionRepo.updateTransaction(id, payloadToUpdate);
+  const updatedTransaction = await transactionRepo.updateTransaction(
+    id,
+    payloadToUpdate,
+  );
 
   return {
     updatedTransaction,
@@ -157,7 +167,9 @@ const getSumaryTransaction = async (user_id, payload) => {
   });
 
   const saving_rate =
-    ((monthly_income - monthly_expense) / monthly_income) * 100;
+    monthly_income > 0
+      ? ((monthly_income - monthly_expense) / monthly_income) * 100
+      : 0;
 
   return {
     monthly_income,

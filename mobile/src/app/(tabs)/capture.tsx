@@ -184,7 +184,7 @@ export default function QuickCaptureScreen() {
         const type = match ? `image/${match[1]}` : `image/jpeg`;
 
         formData.append('image', {
-          uri: Platform.OS === 'ios' ? imageUri.replace('file://', '') : imageUri,
+          uri: imageUri,
           name: filename,
           type,
         } as any);

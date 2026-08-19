@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import NetInfo from '@react-native-community/netinfo';
+import { Platform } from 'react-native';
 import apiClient from '../api/client';
 import { getDb } from '../database/sqlite';
 
@@ -49,11 +50,88 @@ export const pushLocalChanges = async (): Promise<void> => {
         }
       } else if (table_name === 'transactions') {
         if (verb === 'INSERT') {
-          // If transaction has an offline image cache path, we should handle it
-          // Otherwise, send as standard JSON (supported by express.json() parser on BE)
-          await apiClient.post('/transactions', { id: record_id, ...payload });
+          let res;
+          if (payload.image_local_uri) {
+            const formData = new FormData();
+            formData.append('id', record_id);
+            formData.append('title', payload.title);
+            formData.append('amount', String(payload.amount));
+            formData.append('type', payload.type);
+            formData.append('transaction_date', payload.transaction_date);
+            if (payload.category_id) formData.append('category_id', payload.category_id);
+            if (payload.description) formData.append('description', payload.description);
+
+            let uri = payload.image_local_uri;
+            if (Platform.OS === 'ios' && !uri.startsWith('file://') && !uri.startsWith('ph://')) {
+              uri = `file://${uri}`;
+            }
+            const filename = uri.split('/').pop() || 'photo.jpg';
+            const match = /\.(\w+)$/.exec(filename);
+            const mimeType = match ? `image/${match[1]}` : 'image/jpeg';
+
+            formData.append('image', {
+              uri,
+              name: filename,
+              type: mimeType,
+            } as any);
+
+            res = await apiClient.post('/transactions', formData, {
+              headers: { 'Content-Type': undefined },
+            });
+          } else {
+            const jsonPayload = { ...payload };
+            delete jsonPayload.image_local_uri;
+            res = await apiClient.post('/transactions', { id: record_id, ...jsonPayload });
+          }
+
+          const remoteTx = res.data?.data?.newTransaction || res.data?.data?.new_transaction || res.data?.data;
+          if (remoteTx?.image_url) {
+            await db.runAsync(
+              'UPDATE local_transactions SET image_url = ? WHERE id = ?',
+              [remoteTx.image_url, record_id]
+            );
+          }
         } else if (verb === 'UPDATE') {
-          await apiClient.patch(`/transactions/${record_id}`, payload);
+          let res;
+          if (payload.image_local_uri) {
+            const formData = new FormData();
+            if (payload.title) formData.append('title', payload.title);
+            if (payload.amount) formData.append('amount', String(payload.amount));
+            if (payload.type) formData.append('type', payload.type);
+            if (payload.transaction_date) formData.append('transaction_date', payload.transaction_date);
+            if (payload.category_id) formData.append('category_id', payload.category_id);
+            if (payload.description) formData.append('description', payload.description);
+
+            let uri = payload.image_local_uri;
+            if (Platform.OS === 'ios' && !uri.startsWith('file://') && !uri.startsWith('ph://')) {
+              uri = `file://${uri}`;
+            }
+            const filename = uri.split('/').pop() || 'photo.jpg';
+            const match = /\.(\w+)$/.exec(filename);
+            const mimeType = match ? `image/${match[1]}` : 'image/jpeg';
+
+            formData.append('image', {
+              uri,
+              name: filename,
+              type: mimeType,
+            } as any);
+
+            res = await apiClient.patch(`/transactions/${record_id}`, formData, {
+              headers: { 'Content-Type': undefined },
+            });
+          } else {
+            const jsonPayload = { ...payload };
+            delete jsonPayload.image_local_uri;
+            res = await apiClient.patch(`/transactions/${record_id}`, jsonPayload);
+          }
+
+          const remoteTx = res.data?.data?.updatedTransaction || res.data?.data?.updated_transaction || res.data?.data;
+          if (remoteTx?.image_url) {
+            await db.runAsync(
+              'UPDATE local_transactions SET image_url = ? WHERE id = ?',
+              [remoteTx.image_url, record_id]
+            );
+          }
         } else if (verb === 'DELETE') {
           await apiClient.delete(`/transactions/${record_id}`);
         }

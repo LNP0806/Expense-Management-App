@@ -24,18 +24,23 @@ services:
       - "3001:3001"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      PORT: 3001
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: devops_user
-      DB_PASSWORD: secretpassword
-      DB_NAME: app_db
-      JWT_SECRET: ${JWT_SECRET:-devsecretkey1234567890}
-      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-devsecretrefresh1234567890}
+      PORT: ${PORT:-3001}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173,http://localhost:80}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-devops_user}
+      DB_PASSWORD: ${DB_PASSWORD:-secretpassword}
+      DB_NAME: ${DB_NAME:-app_db}
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL:-}
+      JWT_SECRET: ${JWT_SECRET:-this_is_super_secret}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-this_is_very_super_secret}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_AI_MODEL: ${GEMINI_AI_MODEL:-gemini-3.1-flash-lite}
     depends_on:
       - db
     command: >

@@ -69,11 +69,11 @@ jobs:
           JWT_REFRESH_SECRET: ci_test_jwt_refresh_secret
 
   # ==========================================
-  # GIAI ĐOẠN 2: BUILD & XÁC THỰC ARTIFACTS
+  # GIAI ĐOẠN 2: BUILD, KIỂM TRA & PUSH LÊN DOCKER HUB
   # (CHỈ CHẠY KHI TOÀN BỘ TEST PHÍA TRÊN ĐÃ PASS)
   # ==========================================
-  build-and-verify:
-    name: 🚀 Build Frontend & Docker Images
+  build-and-push:
+    name: 🚀 Build & Push Docker Images
     runs-on: ubuntu-latest
     needs: [test-frontend, test-backend] # <-- Ràng buộc: Tất cả test phải Pass 100% trước
 
@@ -95,12 +95,41 @@ jobs:
       - name: Build Frontend Artifacts (dist/)
         run: cd fe && npm run build
 
-      # 2.2 Khởi tạo Docker Buildx & Build kiểm tra Docker Images
+      # 2.2 Khởi tạo Docker Buildx & Docker Compose Validate
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Validate Docker Compose Configuration
         run: docker compose -f docker-compose.yml config
 
-      - name: Build Docker Images (Backend & Frontend Production)
-        run: docker compose -f docker-compose.yml build
+      # 2.3 Đăng nhập Docker Hub (Dùng Secret đã cấu hình trên GitHub)
+      - name: Log in to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 2.4 Build & Push Docker Image cho Backend
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./be
+          file: ./be/Dockerfile
+          target: prod
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/expense-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/expense-backend:${{ github.sha }}
+
+      # 2.5 Build & Push Docker Image cho Frontend
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./fe
+          file: ./fe/Dockerfile
+          target: prod
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/expense-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/expense-frontend:${{ github.sha }}

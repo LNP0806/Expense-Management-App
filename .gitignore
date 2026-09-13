@@ -121,3 +121,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Docker Compose Local Override
+docker-compose.override.yml
+

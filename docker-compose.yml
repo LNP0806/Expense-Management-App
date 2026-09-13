@@ -1,0 +1,54 @@
+services:
+  # Cơ sở dữ liệu nội bộ
+  db:
+    image: postgres:16-alpine
+    container_name: project-db
+    restart: always
+    environment:
+      POSTGRES_USER: devops_user
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: app_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Lưu ý: Không mở ports ra ngoài host ở Production để bảo mật tối đa
+
+  # Ứng dụng Backend
+  backend:
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+      target: prod
+    container_name: project-backend
+    restart: always
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./be/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: devops_user
+      DB_PASSWORD: secretpassword
+      DB_NAME: app_db
+    depends_on:
+      - db
+    command: >
+      sh -c "npm run migrate && node src/server.js"
+
+  # Ứng dụng Frontend
+  frontend:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+      target: prod
+    container_name: project-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

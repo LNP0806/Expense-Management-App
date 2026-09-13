@@ -1,0 +1,68 @@
+name: Continuous Integration (CI)
+
+# Kích hoạt pipeline khi có commit push vào main hoặc khi mở Pull Request vào main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # ==========================================
+  # JOB 1: Kiểm tra và Build Frontend (React / Vite)
+  # ==========================================
+  frontend-check:
+    name: Test & Build Frontend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./fe
+
+    steps:
+      # Bước 1: Kéo mã nguồn từ GitHub về máy ảo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Bước 2: Cài đặt môi trường Node.js 20 kèm bộ nhớ đệm (cache) npm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: fe/package-lock.json
+
+      # Bước 3: Cài đặt dependencies (dùng npm ci nhanh và chuẩn xác hơn npm install)
+      - name: Install Frontend dependencies
+        run: npm ci
+
+      # Bước 4: Kiểm tra Lint (bắt lỗi cú pháp, biến thừa...)
+      - name: Run ESLint
+        run: npm run lint
+
+      # Bước 5: Thử nghiệm Build ứng dụng Vite ra thư mục dist/
+      - name: Build Frontend
+        run: npm run build
+
+  # ==========================================
+  # JOB 2: Kiểm tra tính toàn vẹn của Docker Compose
+  # ==========================================
+  docker-check:
+    name: Test Docker Builds
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Khởi tạo Docker Buildx (hỗ trợ tính năng multi-stage targets)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Kiểm tra cú pháp file docker-compose.yml
+      - name: Validate Docker Compose Configuration
+        run: docker compose -f docker-compose.yml config
+
+      # Build thử toàn bộ các images (Backend & Frontend) để đảm bảo Dockerfile không lỗi
+      - name: Build Docker Images
+        run: docker compose -f docker-compose.yml build

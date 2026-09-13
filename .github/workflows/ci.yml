@@ -45,7 +45,39 @@ jobs:
         run: npm run build
 
   # ==========================================
-  # JOB 2: Kiểm tra tính toàn vẹn của Docker Compose
+  # JOB 2: Kiểm tra và Chạy Automated Test Backend (Node.js / Express / Jest)
+  # ==========================================
+  backend-check:
+    name: Test Backend APIs
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./be
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: be/package-lock.json
+
+      - name: Install Backend dependencies
+        run: npm ci
+
+      - name: Run Backend Unit & Integration Tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: ci_test_jwt_secret
+          JWT_REFRESH_SECRET: ci_test_jwt_refresh_secret
+
+  # ==========================================
+  # JOB 3: Kiểm tra tính toàn vẹn của Docker Compose
   # ==========================================
   docker-check:
     name: Test Docker Builds
